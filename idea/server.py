@@ -123,4 +123,4 @@ if __name__ == '__main__':
     print("3. One player creates a room")
     print("4. Others join using the room code")
     print("\nStarting server...")
-    socketio.run(app, debug=True, port=5000)
+    socketio.run(app, host='0.0.0.0', debug=True, port=5000)
