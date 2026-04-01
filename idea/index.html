@@ -6,6 +6,7 @@
     <title>AKAL_KE_GHODE - Trivia Challenge</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
         /* State management classes mapping to JS logic */
         .game-section, .game-mode-selection, #r2-game, #r2-steal, .room-code-input, .create-room-section { display: none; }
@@ -37,7 +38,12 @@
                 <iconify-icon icon="solar:gamepad-linear" stroke-width="1.5" class="text-zinc-500"></iconify-icon>
                 AKAL_KE_GHODE
             </h1>
-            <div class="flex-1 hidden sm:block"></div>
+            <div class="flex-1 flex justify-end">
+                <div id="headerRoomCodeDisplay" class="hidden items-center gap-2 px-4 py-2 bg-zinc-900/50 border border-zinc-800 rounded-xl max-w-fit">
+                    <span class="text-xs text-zinc-500 font-medium tracking-widest uppercase hidden sm:block">ROOM</span>
+                    <span id="headerRoomCode" class="text-sm font-bold text-white tracking-widest uppercase"></span>
+                </div>
+            </div>
         </header>
 
         <!-- Game Mode Selection -->
@@ -293,21 +299,92 @@
             return 'border-zinc-800 border-dashed bg-zinc-950 text-zinc-600'; // hidden
         }
 
+        // Game State Variables
+        let socket = null;
+        let localPlayerId = null;
+        let isHost = false;
+        let gameMode = 'local';
+        let currentRoomCode = '';
+        let localPlayerName = '';
+
+        function initSocket() {
+            if (!socket) {
+                socket = io();
+                
+                socket.on('player_joined', (data) => {
+                    if (data.players) {
+                        updateWaitingPlayersList(data.players);
+                    }
+                });
+                
+                socket.on('game_updated', (gameState) => {
+                    if (gameState.action === 'start_game' && !isHost) {
+                        // Sync players array from host
+                        players.forEach((p, i) => {
+                            if (gameState.players[i]) p.name = gameState.players[i].name;
+                        });
+                        
+                        r1Question = gameState.r1Question;
+                        r1Answers = gameState.r1Answers;
+                        r1Revealed = {};
+                        r1CurrentPlayer = 0;
+                        r1TurnCount = 0;
+                        r1PlayerTurns = [0, 0, 0];
+                        
+                        document.getElementById('r1-question').textContent = r1Question;
+                        updateR1Board();
+                        updateScores('r1');
+                        
+                        showSection(gameState.currentSection);
+                    }
+                });
+            }
+        }
+        
+        function updateWaitingPlayersList(roomPlayers) {
+            const waitingText = document.getElementById('waitingPlayers');
+            if (waitingText) {
+                waitingText.textContent = `Players in room: ${roomPlayers.length}/3`;
+            }
+            
+            // Sync players array with backend length
+            roomPlayers.forEach((p, idx) => {
+                if (idx < players.length) {
+                    players[idx].name = p.name;
+                    players[idx].remoteId = p.id;
+                }
+            });
+            
+            // If host sees 2+ players, pop open setup automatically if not already
+            if (roomPlayers.length >= 2 && !document.getElementById('setup').classList.contains('active') && isHost) {
+                showSection('setup');
+            }
+            
+            if (document.getElementById('setup').classList.contains('active')) {
+                initPlayerSetup();
+            }
+        }
+
         // Initialize Player Setup
         function initPlayerSetup() {
             const container = document.getElementById('playerInputs');
             container.innerHTML = players.map((p, i) => `
                 <div class="flex items-center gap-3 w-full">
                     <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-zinc-950 border border-zinc-800 text-lg">${p.color}</div>
-                    <input type="text" id="player${i}" placeholder="${p.name}" value="${p.name}" class="flex-1 px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-white focus:border-white transition-all text-sm text-white placeholder-zinc-500">
+                    <input type="text" id="player${i}" placeholder="${p.name}" value="${p.name}" ${gameMode === 'remote' && p.remoteId !== localPlayerId ? 'disabled' : ''} class="flex-1 px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-white focus:border-white transition-all text-sm text-white placeholder-zinc-500 disabled:opacity-50">
                 </div>
             `).join('');
-        }
 
-        // Game Mode Functions (Mocked API calls for frontend demo consistency)
-        let gameMode = 'local';
-        let currentRoomCode = '';
-        let localPlayerName = '';
+            // Only host can start game
+            const btn = document.querySelector('#setup button[onclick="startGame()"]');
+            if (btn) {
+                if (gameMode === 'remote' && !isHost) {
+                    btn.style.display = 'none';
+                } else {
+                    btn.style.display = 'block';
+                }
+            }
+        }
 
         function startLocalGame() {
             gameMode = 'local';
@@ -327,14 +404,54 @@
             document.querySelectorAll('input').forEach(i => i.value = '');
         }
 
-        function joinRemoteGame() {
+        async function joinRemoteGame() {
             const playerName = document.getElementById('playerName').value.trim();
-            const roomCode = document.getElementById('roomCode').value.trim();
+            const roomCode = document.getElementById('roomCode').value.trim().toUpperCase();
             if (!playerName || !roomCode) return;
-            // Mocking join
-            gameMode = 'remote';
-            showSection('setup');
-            initPlayerSetup();
+            
+            const btn = document.querySelector('#roomCodeInput button');
+            const origText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Joining...';
+            
+            try {
+                const joinRes = await fetch(`/api/join-room/${roomCode}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ player_name: playerName, player_color: '🔵' })
+                });
+                
+                if (!joinRes.ok) {
+                    const err = await joinRes.json();
+                    alert(err.error || 'Failed to join room');
+                    btn.disabled = false;
+                    btn.textContent = origText;
+                    return;
+                }
+                
+                const joinData = await joinRes.json();
+                
+                currentRoomCode = roomCode;
+                localPlayerName = playerName;
+                localPlayerId = joinData.player.id;
+                gameMode = 'remote';
+                isHost = false;
+                
+                document.getElementById('headerRoomCodeDisplay').classList.remove('hidden');
+                document.getElementById('headerRoomCodeDisplay').classList.add('flex');
+                document.getElementById('headerRoomCode').textContent = roomCode;
+                
+                initSocket();
+                socket.emit('join_room', { room_id: roomCode, player_id: localPlayerId });
+                
+                showSection('setup');
+                updateWaitingPlayersList(joinData.room.players);
+            } catch (error) {
+                console.error(error);
+                alert('Connection error');
+                btn.disabled = false;
+                btn.textContent = origText;
+            }
         }
 
         async function createRemoteRoom() {
@@ -344,36 +461,47 @@
                 return;
             }
             
-            // Show loading state
             const btn = document.querySelector('#createRoomOptions button');
+            const origText = btn.textContent;
             btn.disabled = true;
             btn.textContent = 'Creating...';
             
             try {
-                // Mocking backend response for frontend demo
-                await new Promise(resolve => setTimeout(resolve, 600)); // Simulate network latency
-                const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+                const res = await fetch('/api/create-room', { method: 'POST' });
+                const data = await res.json();
+                const roomCode = data.room_id;
+                
+                const joinRes = await fetch(`/api/join-room/${roomCode}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ player_name: playerName, player_color: '🔴' })
+                });
+                const joinData = await joinRes.json();
                 
                 document.getElementById('newRoomCode').value = roomCode;
                 document.getElementById('createRoomSection').classList.add('show');
                 document.getElementById('roomCodeInput').classList.remove('show');
                 document.getElementById('createRoomOptions').classList.remove('show');
                 
-                // Store room info for later use
                 currentRoomCode = roomCode;
                 localPlayerName = playerName;
+                localPlayerId = joinData.player.id;
                 gameMode = 'remote';
+                isHost = true;
                 
-                // Simulate waiting for players (in real app, would use WebSocket)
-                setTimeout(() => {
-                    showSection('setup');
-                    initPlayerSetup();
-                }, 2000);
+                document.getElementById('headerRoomCodeDisplay').classList.remove('hidden');
+                document.getElementById('headerRoomCodeDisplay').classList.add('flex');
+                document.getElementById('headerRoomCode').textContent = roomCode;
+                
+                initSocket();
+                socket.emit('join_room', { room_id: roomCode, player_id: localPlayerId });
+                
+                updateWaitingPlayersList([joinData.player]);
             } catch (error) {
                 console.error('Error creating room:', error);
                 alert('Failed to create room. Please try again.');
                 btn.disabled = false;
-                btn.textContent = 'Create Room';
+                btn.textContent = origText;
             }
         }
 
@@ -385,6 +513,19 @@
             });
             showSection('round1');
             initRound1();
+            
+            if (gameMode === 'remote' && isHost && socket) {
+                socket.emit('update_game', {
+                    room_id: currentRoomCode,
+                    game_state: { 
+                        action: 'start_game', 
+                        players: players, 
+                        currentSection: 'round1', 
+                        r1Question: r1Question, 
+                        r1Answers: r1Answers 
+                    }
+                });
+            }
         }
 
         // Initialize Round 1
