@@ -1,4 +1,6 @@
 import time
+import random
+from questions import R1_QUESTIONS, R2_QUESTIONS, R3_QUESTIONS
 
 # Player class
 class Player:
@@ -138,19 +140,17 @@ game = KaustubhGame()
 game.rename_players()
 
 # Round 1 example
-game.round1("Name the planets in the solar system",
-            ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"])
+r1_q = random.choice(R1_QUESTIONS)
+game.round1(r1_q["q"], r1_q["a"])
 
 # Round 2 example
-questions = [
-    ("Name Olympic sports", ["Football", "Basketball", "Tennis", "Swimming", "Boxing", "Hockey", "Cycling", "Wrestling"]),
-    ("Name common fruits", ["Apple", "Banana", "Orange", "Mango", "Grapes", "Pineapple", "Strawberry", "Watermelon"]),
-    ("Name popular video games", ["Minecraft", "Fortnite", "PUBG", "Call of Duty", "Among Us", "Valorant", "FIFA", "GTA"])
-]
+# Pick 3 random questions for the round
+r2_pool = random.sample(R2_QUESTIONS, 3)
+questions = [(q["q"], q["a"]) for q in r2_pool]
 game.round2(questions)
 
 # Round 3 example
-game.round3("Name the continents of the world",
-            ["Asia", "Africa", "North America", "South America", "Antarctica", "Europe", "Australia"])
+r3_q = random.choice(R3_QUESTIONS)
+game.round3(r3_q["q"], r3_q["a"])
 
 game.show_scores()
