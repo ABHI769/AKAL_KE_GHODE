@@ -85,7 +85,7 @@ def handle_join_room(data):
     
     if room_id in rooms:
         join_room(room_id)
-        emit('player_joined', {'player_id': player_id}, room=room_id)
+        emit('player_joined', {'player_id': player_id, 'players': rooms[room_id]['players']}, room=room_id)
 
 @socketio.on('update_game')
 def handle_update_game(data):
