@@ -7,6 +7,8 @@ from flask import Flask, send_file, jsonify, request
 from flask_socketio import SocketIO, emit, join_room
 import json
 import uuid
+import random
+from questions import R1_QUESTIONS, R2_QUESTIONS, R3_QUESTIONS
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'kaustubh-game-secret'
@@ -32,16 +34,11 @@ def api_create_room():
         'players': [],
         'game_state': {
             'current_round': 0,
-            'r1_question': "Name the planets in the solar system",
-            'r1_answers': ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"],
+            'r1_questions': random.sample(R1_QUESTIONS, len(R1_QUESTIONS)),
             'r1_revealed': {},
-            'r2_questions': [
-                {"q": "Name Olympic sports", "a": ["Football", "Basketball", "Tennis", "Swimming", "Boxing", "Hockey", "Cycling", "Wrestling"]},
-                {"q": "Name common fruits", "a": ["Apple", "Banana", "Orange", "Mango", "Grapes", "Pineapple", "Strawberry", "Watermelon"]},
-                {"q": "Name popular video games", "a": ["Minecraft", "Fortnite", "PUBG", "Call of Duty", "Among Us", "Valorant", "FIFA", "GTA"]}
-            ],
-            'r3_question': "Name the continents of the world",
-            'r3_answers': ["Asia", "Africa", "North America", "South America", "Antarctica", "Europe", "Australia"],
+            'r2_questions': random.sample(R2_QUESTIONS, len(R2_QUESTIONS)),
+            'r2_revealed': {},
+            'r3_questions': random.sample(R3_QUESTIONS, len(R3_QUESTIONS)),
             'r3_revealed': {}
         }
     }
