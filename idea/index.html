@@ -3,303 +3,331 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AKAL_KE_GHODE - Trivia Challenge</title>
+    <title>AKAL_KE_GHODE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        /* State management classes mapping to JS logic */
-        .game-section, .game-mode-selection, #r2-game, #r2-steal, .room-code-input, .create-room-section { display: none; }
-        .active, .show { display: block !important; animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes fadeIn { 
-            from { opacity: 0; transform: translateY(8px); } 
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .game-section, .game-mode-selection, #r2-game, #r2-steal, .room-code-input, .create-room-section { 
+            display: none; 
+            opacity: 0;
+        }
+        
+        .active, .show { 
+            display: block !important; 
+            animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+        }
+
+        @keyframes slideUpFade { 
+            from { opacity: 0; transform: translateY(12px); } 
             to { opacity: 1; transform: translateY(0); } 
         }
         
-        /* Custom scrollbar for a cleaner look */
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+        .bg-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 600px;
+            background: 
+                radial-gradient(circle at 20% 0%, rgba(139, 92, 246, 0.2) 0%, transparent 60%),
+                radial-gradient(circle at 80% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-300 font-sans min-h-screen antialiased flex flex-col items-center pt-12 pb-24 selection:bg-zinc-800 selection:text-white">
+<body class="bg-black text-zinc-400 min-h-screen antialiased flex flex-col items-center pt-8 pb-24 selection:bg-violet-900/50 selection:text-violet-200 relative overflow-x-hidden">
+    
+    <div class="bg-glow"></div>
 
-    <main class="w-full max-w-3xl px-6 relative z-10">
+    <main class="w-full max-w-4xl px-4 sm:px-8 relative z-10 flex flex-col min-h-[80vh]">
         
-        <!-- Header -->
-        <header class="mb-10 sm:mb-16 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex-1 flex justify-start w-full sm:w-auto">
-                <button onclick="restartGame()" class="px-4 py-2 bg-zinc-900/50 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800 rounded-xl text-sm transition-colors flex items-center gap-2 group hidden" id="goBackButton">
-                    <iconify-icon icon="solar:arrow-left-linear" class="group-hover:-translate-x-1 transition-transform"></iconify-icon> Go Back
+        <header class="mb-12 sm:mb-20 flex items-center justify-between border-b border-violet-900/50 pb-6">
+            <div class="flex-1">
+                <button onclick="restartGame()" class="group inline-flex items-center gap-2 text-xs font-medium text-zinc-500 hover:text-violet-400 transition-colors hidden" id="goBackButton">
+                    <iconify-icon icon="solar:arrow-left-linear" stroke-width="1.5" class="text-sm group-hover:-translate-x-0.5 transition-transform"></iconify-icon> 
+                    Back
                 </button>
             </div>
-            <h1 class="text-2xl sm:text-3xl font-semibold tracking-tighter text-white uppercase flex items-center justify-center gap-3">
-                <iconify-icon icon="solar:gamepad-linear" stroke-width="1.5" class="text-zinc-500"></iconify-icon>
+            
+            <h1 class="text-base sm:text-lg font-medium tracking-tighter text-violet-50 uppercase cursor-default">
                 AKAL_KE_GHODE
             </h1>
+            
             <div class="flex-1 flex justify-end">
-                <div id="headerRoomCodeDisplay" class="hidden items-center gap-2 px-4 py-2 bg-zinc-900/50 border border-zinc-800 rounded-xl max-w-fit">
-                    <span class="text-xs text-zinc-500 font-medium tracking-widest uppercase hidden sm:block">ROOM</span>
-                    <span id="headerRoomCode" class="text-sm font-bold text-white tracking-widest uppercase"></span>
+                <div id="headerRoomCodeDisplay" class="hidden items-center gap-2 px-3 py-1.5 bg-zinc-900/80 backdrop-blur-sm border border-violet-900/50 shadow-sm rounded-md">
+                    <div class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></div>
+                    <span id="headerRoomCode" class="text-xs font-medium text-zinc-300 tracking-widest uppercase"></span>
                 </div>
             </div>
         </header>
 
-        <!-- Game Mode Selection -->
-        <div id="gameModeSelection" class="game-mode-selection active">
-            <div class="text-center mb-10">
-                <h2 class="text-2xl font-semibold tracking-tight text-white mb-2">Select Mode</h2>
-                <p class="text-sm text-zinc-500">Choose how you want to play</p>
-            </div>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="group p-6 rounded-2xl border border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900 hover:border-zinc-700 transition-all cursor-pointer flex flex-col items-center text-center gap-4 relative overflow-hidden" onclick="startLocalGame()">
-                    <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <iconify-icon icon="solar:devices-linear" width="32" stroke-width="1.5" class="text-zinc-400 group-hover:text-white transition-colors"></iconify-icon>
-                    <div>
-                        <h3 class="text-base font-semibold tracking-tight text-white mb-1">Local Play</h3>
-                        <p class="text-xs text-zinc-500">Pass the device around</p>
+        <div class="flex-1 flex flex-col justify-center">
+            <div id="gameModeSelection" class="game-mode-selection active max-w-2xl mx-auto w-full">
+                <div class="text-center mb-10">
+                    <h2 class="text-xl sm:text-2xl font-medium tracking-tight text-violet-50 mb-2">Select Game Mode</h2>
+                    <p class="text-sm text-zinc-400">Choose how you want to connect and play.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="group p-6 rounded-xl border border-violet-900/50 bg-zinc-900/80 backdrop-blur-sm shadow-sm hover:border-violet-700 transition-all duration-300 cursor-pointer flex flex-col gap-5" onclick="startLocalGame()">
+                        <div class="w-10 h-10 rounded-lg border border-violet-900/60 bg-violet-900/20 flex items-center justify-center group-hover:border-violet-700 group-hover:bg-violet-900/40 transition-colors">
+                            <iconify-icon icon="solar:devices-linear" class="text-lg text-violet-400 transition-colors" stroke-width="1.5"></iconify-icon>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-medium tracking-tight text-violet-50 mb-1">Local Play</h3>
+                            <p class="text-xs text-zinc-400 leading-relaxed">Play on a single device, passing it to the active player.</p>
+                        </div>
                     </div>
-                    <button class="mt-2 w-full px-4 py-2.5 bg-white text-zinc-950 text-sm font-medium rounded-xl hover:bg-zinc-200 transition-colors shadow-sm">Play Now</button>
-                </div>
-                
-                <div class="group p-6 rounded-2xl border border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900 hover:border-zinc-700 transition-all cursor-pointer flex flex-col items-center text-center gap-4 relative overflow-hidden" onclick="showRoomCodeInput()">
-                    <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <iconify-icon icon="solar:global-linear" width="32" stroke-width="1.5" class="text-zinc-400 group-hover:text-white transition-colors"></iconify-icon>
-                    <div>
-                        <h3 class="text-base font-semibold tracking-tight text-white mb-1">Remote Play</h3>
-                        <p class="text-xs text-zinc-500">Play across network</p>
+                    
+                    <div class="group p-6 rounded-xl border border-violet-900/50 bg-zinc-900/80 backdrop-blur-sm shadow-sm hover:border-violet-700 transition-all duration-300 cursor-pointer flex flex-col gap-5" onclick="showRoomCodeInput()">
+                        <div class="w-10 h-10 rounded-lg border border-violet-900/60 bg-violet-900/20 flex items-center justify-center group-hover:border-violet-700 group-hover:bg-violet-900/40 transition-colors">
+                            <iconify-icon icon="solar:global-linear" class="text-lg text-violet-400 transition-colors" stroke-width="1.5"></iconify-icon>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-medium tracking-tight text-violet-50 mb-1">Network Play</h3>
+                            <p class="text-xs text-zinc-400 leading-relaxed">Create or join a room to play across multiple devices.</p>
+                        </div>
                     </div>
-                    <button class="mt-2 w-full px-4 py-2.5 bg-zinc-800 text-white text-sm font-medium rounded-xl hover:bg-zinc-700 border border-zinc-700 transition-colors">Join Online</button>
                 </div>
-            </div>
 
-            <div id="roomCodeInput" class="room-code-input mt-8 p-6 rounded-2xl border border-zinc-800 bg-zinc-900/50">
-                <p class="text-sm font-medium text-white mb-4">Join existing room</p>
-                <div class="flex flex-col gap-3">
-                    <input type="text" id="playerName" placeholder="Your Name" class="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-white focus:border-white transition-all text-sm text-white placeholder-zinc-500">
-                    <input type="text" id="roomCode" placeholder="Room Code" class="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-white focus:border-white transition-all text-sm text-white placeholder-zinc-500 uppercase tracking-widest text-center font-medium">
-                    <button class="w-full px-4 py-3 bg-white text-zinc-950 text-sm font-medium rounded-xl hover:bg-zinc-200 transition-colors" onclick="joinRemoteGame()">Join Game</button>
-                </div>
-            </div>
-
-            <div id="createRoomOptions" class="room-code-input mt-4 p-6 rounded-2xl border border-zinc-800 bg-zinc-900/50">
-                <p class="text-sm font-medium text-white mb-4">Create new room</p>
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <input type="text" id="hostName" placeholder="Host Name" class="flex-1 px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-white focus:border-white transition-all text-sm text-white placeholder-zinc-500">
-                    <button class="px-6 py-3 bg-zinc-800 text-white text-sm font-medium rounded-xl hover:bg-zinc-700 border border-zinc-700 transition-colors whitespace-nowrap" onclick="createRemoteRoom()">Create Room</button>
-                </div>
-                <div class="mt-4 pt-4 border-t border-zinc-800">
-                    <button class="w-full px-4 py-3 bg-transparent text-zinc-400 text-sm font-medium rounded-xl hover:bg-zinc-800 hover:text-white transition-colors border border-dashed border-zinc-800" onclick="hideRemoteOptions()">Go Back</button>
-                </div>
-            </div>
-
-            <div id="createRoomSection" class="create-room-section mt-8 text-center p-8 rounded-2xl border border-zinc-800 border-dashed bg-zinc-900/30">
-                <p class="text-sm text-zinc-400 mb-2">Share this code</p>
-                <input type="text" id="newRoomCode" readonly class="bg-transparent border-none text-3xl font-semibold tracking-widest text-white text-center w-full focus:outline-none mb-6 cursor-default">
-                <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-zinc-800/50 border border-zinc-700/50 text-xs text-zinc-300">
-                    <iconify-icon icon="solar:hourglass-linear" class="animate-pulse"></iconify-icon>
-                    <span id="waitingPlayers">Waiting for players...</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Player Setup -->
-        <div id="setup" class="game-section">
-            <div class="max-w-md mx-auto p-8 rounded-2xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-sm">
-                <div class="flex items-center justify-center gap-3 mb-8">
-                    <iconify-icon icon="solar:users-group-two-rounded-linear" class="text-xl text-zinc-400"></iconify-icon>
-                    <h2 class="text-xl font-semibold tracking-tight text-white">Player Setup</h2>
-                </div>
-                <div id="playerInputs" class="flex flex-col gap-4 mb-8"></div>
-                <button class="w-full px-4 py-3 bg-white text-zinc-950 text-sm font-medium rounded-xl hover:bg-zinc-200 transition-colors shadow-sm" onclick="startGame()">Start Game</button>
-            </div>
-        </div>
-
-        <!-- Round 1 -->
-        <div id="round1" class="game-section">
-            <div class="text-center mb-12">
-                <span class="inline-flex items-center rounded-full bg-zinc-900 px-3 py-1 text-xs font-medium text-zinc-400 border border-zinc-800 mb-6 tracking-widest uppercase">Round 1</span>
-                <h2 class="text-2xl font-semibold tracking-tight text-white text-balance" id="r1-question"></h2>
-            </div>
-            
-            <div class="flex justify-center mb-8">
-                <div id="r1-current-player" class="py-2.5 px-6 rounded-full border border-zinc-800 bg-zinc-900 inline-flex items-center gap-2 text-sm font-medium text-white shadow-sm transition-all duration-300"></div>
-            </div>
-
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" id="r1-answers"></div>
-            
-            <div id="r1-message" class="mb-6 h-12 flex items-center justify-center"></div>
-            
-            <div class="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
-                <input type="text" id="r1-guess" placeholder="Type your answer..." class="flex-1 px-5 py-3.5 bg-zinc-950 border border-zinc-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-white focus:border-white transition-all text-sm text-white placeholder-zinc-500 shadow-inner" onkeypress="handleEnter(event, 'r1')">
-                <button class="px-8 py-3.5 bg-white text-zinc-950 text-sm font-medium rounded-xl hover:bg-zinc-200 transition-colors shadow-sm whitespace-nowrap" onclick="submitGuess('r1')">Submit</button>
-            </div>
-
-            <div class="flex flex-wrap justify-center gap-4 mt-16 pt-8 border-t border-zinc-800/50" id="r1-scores"></div>
-            
-            <div class="mt-12 flex justify-center">
-                <button class="px-6 py-3 bg-zinc-900 text-white text-sm font-medium rounded-xl hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 transition-colors flex items-center gap-2 group" onclick="nextRound(2)">
-                    Proceed to Round 2
-                    <iconify-icon icon="solar:arrow-right-linear" class="group-hover:translate-x-1 transition-transform"></iconify-icon>
-                </button>
-            </div>
-        </div>
-
-        <!-- Round 2 -->
-        <div id="round2" class="game-section">
-            <div class="text-center mb-12">
-                <span class="inline-flex items-center rounded-full bg-zinc-900 px-3 py-1 text-xs font-medium text-zinc-400 border border-zinc-800 mb-6 tracking-widest uppercase">Round 2</span>
-                <h2 class="text-2xl font-semibold tracking-tight text-white text-balance" id="r2-title"></h2>
-            </div>
-
-            <div id="r2-question-choose" class="max-w-3xl mx-auto">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12" id="r2-options"></div>
-            </div>
-
-            <div id="r2-game">
-                <div class="flex flex-col items-center mb-12">
-                    <div class="relative flex items-center justify-center w-24 h-24 rounded-full border-2 border-zinc-800 bg-zinc-950/50 mb-6 shadow-inner">
-                        <div id="r2-timer" class="text-4xl font-medium tracking-tighter text-white tabular-nums">50</div>
+                <div class="mt-4 flex flex-col gap-4">
+                    <div id="roomCodeInput" class="room-code-input p-6 rounded-xl border border-violet-900/50 bg-zinc-900/80 backdrop-blur-sm shadow-sm">
+                        <p class="text-sm font-medium text-violet-50 mb-4 tracking-tight">Join an existing room</p>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="text" id="playerName" placeholder="Your Name" class="flex-1 px-3.5 py-2.5 bg-black border border-violet-900/50 shadow-sm rounded-lg focus:outline-none focus:border-violet-600 focus:ring-2 focus:ring-violet-600/20 transition-all text-sm text-violet-50 placeholder-zinc-600">
+                            <input type="text" id="roomCode" placeholder="Room Code" class="flex-1 px-3.5 py-2.5 bg-black border border-violet-900/50 shadow-sm rounded-lg focus:outline-none focus:border-violet-600 focus:ring-2 focus:ring-violet-600/20 transition-all text-sm text-violet-50 placeholder-zinc-600 uppercase tracking-widest sm:max-w-[140px] text-center">
+                            <button class="px-5 py-2.5 bg-violet-700 text-white shadow-sm text-sm font-medium rounded-lg hover:bg-violet-600 transition-colors" onclick="joinRemoteGame()">Join</button>
+                        </div>
                     </div>
-                    <button class="px-4 py-2 bg-zinc-900 text-xs font-medium rounded-lg text-zinc-400 hover:text-white border border-zinc-800 transition-colors" onclick="stopTimer()">End Turn Early</button>
-                </div>
-                
-                <h3 class="text-xl font-medium tracking-tight text-white text-center mb-8" id="r2-question-display"></h3>
-                
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" id="r2-answers"></div>
-                <div id="r2-message" class="mb-6 h-12 flex items-center justify-center"></div>
-                
-                <div class="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
-                    <input type="text" id="r2-guess" placeholder="Type your answer..." class="flex-1 px-5 py-3.5 bg-zinc-950 border border-zinc-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-white focus:border-white transition-all text-sm text-white placeholder-zinc-500 shadow-inner" onkeypress="handleEnter(event, 'r2')">
-                    <button class="px-8 py-3.5 bg-white text-zinc-950 text-sm font-medium rounded-xl hover:bg-zinc-200 transition-colors shadow-sm whitespace-nowrap" onclick="submitGuess('r2')">Submit</button>
-                </div>
-            </div>
 
-            <div id="r2-steal">
-                <!-- Kept empty as logic skips it, but struct maintained -->
-            </div>
-
-            <div class="flex flex-wrap justify-center gap-4 mt-16 pt-8 border-t border-zinc-800/50" id="r2-scores"></div>
-            
-            <div class="mt-12 flex justify-center">
-                <button class="px-6 py-3 bg-zinc-900 text-white text-sm font-medium rounded-xl hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 transition-colors flex items-center gap-2 group" onclick="nextRound(3)">
-                    Final Round
-                    <iconify-icon icon="solar:arrow-right-linear" class="group-hover:translate-x-1 transition-transform"></iconify-icon>
-                </button>
-            </div>
-        </div>
-
-        <!-- Round 3 -->
-        <div id="round3" class="game-section">
-            <div class="text-center mb-12">
-                <span class="inline-flex items-center rounded-full bg-red-950/30 px-3 py-1 text-xs font-medium text-red-400 border border-red-900/50 mb-6 tracking-widest uppercase">Final Round</span>
-                <h2 class="text-2xl font-semibold tracking-tight text-white text-balance" id="r3-question"></h2>
-            </div>
-            
-            <div class="flex justify-center mb-8">
-                <div id="r3-current-player" class="py-2.5 px-6 rounded-full border border-zinc-800 bg-zinc-900 inline-flex items-center gap-2 text-sm font-medium text-white shadow-sm transition-all duration-300"></div>
-            </div>
-
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" id="r3-answers"></div>
-            
-            <div id="r3-message" class="mb-6 h-12 flex items-center justify-center"></div>
-            
-            <div class="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
-                <input type="text" id="r3-guess" placeholder="Type your answer..." class="flex-1 px-5 py-3.5 bg-zinc-950 border border-zinc-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-white focus:border-white transition-all text-sm text-white placeholder-zinc-500 shadow-inner" onkeypress="handleEnter(event, 'r3')">
-                <button class="px-8 py-3.5 bg-white text-zinc-950 text-sm font-medium rounded-xl hover:bg-zinc-200 transition-colors shadow-sm whitespace-nowrap" onclick="submitGuess('r3')">Submit</button>
-            </div>
-
-            <div class="flex flex-wrap justify-center gap-4 mt-16 pt-8 border-t border-zinc-800/50" id="r3-scores"></div>
-        </div>
-
-        <!-- Final Scores -->
-        <div id="final" class="game-section">
-            <div class="max-w-2xl mx-auto text-center">
-                <h2 class="text-3xl font-semibold tracking-tighter text-white mb-12">Final Standings</h2>
-                
-                <div id="winner-display" class="p-10 rounded-3xl border border-yellow-500/20 bg-yellow-500/5 flex flex-col items-center justify-center gap-4 mb-12 relative overflow-hidden shadow-[0_0_40px_-10px_rgba(234,179,8,0.1)]">
-                    <div class="absolute -top-10 -right-10 opacity-10 blur-2xl text-[150px]">🏆</div>
+                    <div id="createRoomOptions" class="room-code-input p-6 rounded-xl border border-violet-900/50 bg-zinc-900/80 backdrop-blur-sm shadow-sm">
+                        <p class="text-sm font-medium text-violet-50 mb-4 tracking-tight">Create a new room</p>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="text" id="hostName" placeholder="Host Name" class="flex-1 px-3.5 py-2.5 bg-black border border-violet-900/50 shadow-sm rounded-lg focus:outline-none focus:border-violet-600 focus:ring-2 focus:ring-violet-600/20 transition-all text-sm text-violet-50 placeholder-zinc-600">
+                            <button class="px-5 py-2.5 bg-black shadow-sm border border-violet-800 text-violet-400 text-sm font-medium rounded-lg hover:text-violet-300 hover:border-violet-600 hover:bg-violet-900/20 transition-colors whitespace-nowrap" onclick="createRemoteRoom()">Create Room</button>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="flex flex-col gap-3 mb-12 max-w-md mx-auto" id="final-scores"></div>
+                <div id="createRoomSection" class="create-room-section mt-8 flex flex-col items-center justify-center p-10 rounded-xl border border-violet-900/50 bg-zinc-900/80 backdrop-blur-sm shadow-sm">
+                    <p class="text-xs font-medium text-zinc-500 uppercase tracking-widest mb-3">Room Code</p>
+                    <input type="text" id="newRoomCode" readonly class="bg-transparent border-none text-2xl sm:text-4xl font-medium tracking-widest text-violet-50 text-center w-full focus:outline-none mb-8 cursor-default selection:bg-transparent">
+                    
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-violet-900/20 border border-violet-800 text-xs text-violet-400">
+                        <iconify-icon icon="solar:round-transfer-horizontal-linear" class="animate-spin-slow text-violet-400"></iconify-icon>
+                        <span id="waitingPlayers">Waiting for players to join...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="setup" class="game-section max-w-md mx-auto w-full">
+                <div class="text-center mb-10">
+                    <h2 class="text-xl sm:text-2xl font-medium tracking-tight text-violet-50 mb-2">Configure Players</h2>
+                    <p class="text-sm text-zinc-400">Set names for each team</p>
+                </div>
                 
-                <button class="px-8 py-4 bg-white text-zinc-950 text-sm font-medium rounded-xl hover:bg-zinc-200 transition-colors shadow-sm inline-flex items-center gap-2" onclick="restartGame()">
-                    <iconify-icon icon="solar:restart-linear"></iconify-icon>
-                    Play Again
-                </button>
+                <div class="p-6 rounded-xl border border-violet-900/50 bg-zinc-900/80 backdrop-blur-sm shadow-sm flex flex-col gap-6">
+                    <div id="playerInputs" class="flex flex-col gap-3"></div>
+                    
+                    <div class="pt-4 border-t border-zinc-800">
+                        <button class="w-full py-2.5 bg-violet-700 text-white shadow-sm text-sm font-medium rounded-lg hover:bg-violet-600 transition-colors flex items-center justify-center gap-2" onclick="startGame()">
+                            Initialize Game
+                            <iconify-icon icon="solar:arrow-right-linear" stroke-width="1.5"></iconify-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="round1" class="game-section w-full">
+                <div class="flex flex-col items-center text-center mb-10">
+                    <span class="text-xs font-medium text-violet-400 tracking-widest uppercase mb-4">Phase 01</span>
+                    <h2 class="text-xl sm:text-2xl font-medium tracking-tight text-violet-50 max-w-2xl text-balance leading-snug" id="r1-question"></h2>
+                </div>
+                
+                <div class="flex justify-center mb-8 h-10">
+                    <div id="r1-current-player" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all duration-300"></div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 max-w-4xl mx-auto" id="r1-answers"></div>
+                
+                <div id="r1-message" class="mb-6 h-10 flex items-center justify-center"></div>
+                
+                <div class="flex gap-2 max-w-md mx-auto">
+                    <input type="text" id="r1-guess" placeholder="Enter answer..." class="flex-1 px-4 py-2.5 bg-black border border-violet-900/50 shadow-sm rounded-lg focus:outline-none focus:border-violet-600 focus:ring-2 focus:ring-violet-600/20 transition-all text-sm text-violet-50 placeholder-zinc-600" autocomplete="off" onkeypress="handleEnter(event, 'r1')">
+                    <button class="px-5 py-2.5 bg-violet-700 border border-violet-600 text-white shadow-sm text-sm font-medium rounded-lg hover:bg-violet-600 transition-colors" onclick="submitGuess('r1')">Submit</button>
+                </div>
+
+                <div class="mt-16 max-w-3xl mx-auto">
+                    <div class="flex flex-col sm:flex-row justify-center gap-3" id="r1-scores"></div>
+                </div>
+                
+                <div class="mt-12 flex justify-center">
+                    <button class="px-5 py-2.5 text-xs font-medium text-zinc-500 hover:text-violet-400 transition-colors flex items-center gap-1.5 group" onclick="nextRound(2)">
+                        Advance to Phase 02
+                        <iconify-icon icon="solar:arrow-right-linear" class="group-hover:translate-x-0.5 transition-transform" stroke-width="1.5"></iconify-icon>
+                    </button>
+                </div>
+            </div>
+
+            <div id="round2" class="game-section w-full">
+                <div class="flex flex-col items-center text-center mb-10">
+                    <span class="text-xs font-medium text-violet-400 tracking-widest uppercase mb-4">Phase 02</span>
+                    <h2 class="text-xl sm:text-2xl font-medium tracking-tight text-violet-50 max-w-2xl text-balance leading-snug" id="r2-title"></h2>
+                </div>
+
+                <div id="r2-question-choose" class="max-w-3xl mx-auto w-full">
+                    <p class="text-sm text-zinc-400 text-center mb-6">Select a category to reveal the prompt.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="r2-options"></div>
+                </div>
+
+                <div id="r2-game" class="max-w-4xl mx-auto w-full">
+                    <div class="flex flex-col items-center mb-8 relative">
+                        <div class="w-16 h-16 rounded-full border border-violet-900/50 bg-black shadow-sm flex items-center justify-center mb-4">
+                            <div id="r2-timer" class="text-lg font-medium text-violet-50 tabular-nums tracking-tight">50</div>
+                        </div>
+                        <button class="text-xs text-zinc-500 hover:text-violet-400 transition-colors absolute right-0 top-4" onclick="stopTimer()">Skip Turn</button>
+                    </div>
+                    
+                    <h3 class="text-lg font-medium tracking-tight text-violet-50 text-center mb-8" id="r2-question-display"></h3>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8" id="r2-answers"></div>
+                    <div id="r2-message" class="mb-6 h-10 flex items-center justify-center"></div>
+                    
+                    <div class="flex gap-2 max-w-md mx-auto">
+                        <input type="text" id="r2-guess" placeholder="Enter answer..." class="flex-1 px-4 py-2.5 bg-black border border-violet-900/50 shadow-sm rounded-lg focus:outline-none focus:border-violet-600 focus:ring-2 focus:ring-violet-600/20 transition-all text-sm text-violet-50 placeholder-zinc-600" autocomplete="off" onkeypress="handleEnter(event, 'r2')">
+                        <button class="px-5 py-2.5 bg-violet-700 border border-violet-600 text-white shadow-sm text-sm font-medium rounded-lg hover:bg-violet-600 transition-colors" onclick="submitGuess('r2')">Submit</button>
+                    </div>
+                </div>
+
+                <div id="r2-steal"></div>
+
+                <div class="mt-16 max-w-3xl mx-auto">
+                    <div class="flex flex-col sm:flex-row justify-center gap-3" id="r2-scores"></div>
+                </div>
+                
+                <div class="mt-12 flex justify-center">
+                    <button class="px-5 py-2.5 text-xs font-medium text-zinc-500 hover:text-violet-400 transition-colors flex items-center gap-1.5 group" onclick="nextRound(3)">
+                        Advance to Final Phase
+                        <iconify-icon icon="solar:arrow-right-linear" class="group-hover:translate-x-0.5 transition-transform" stroke-width="1.5"></iconify-icon>
+                    </button>
+                </div>
+            </div>
+
+            <div id="round3" class="game-section w-full">
+                <div class="flex flex-col items-center text-center mb-10">
+                    <span class="text-xs font-medium text-amber-400 tracking-widest uppercase mb-4 flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
+                        Final Phase
+                    </span>
+                    <h2 class="text-xl sm:text-2xl font-medium tracking-tight text-violet-50 max-w-2xl text-balance leading-snug" id="r3-question"></h2>
+                </div>
+                
+                <div class="flex justify-center mb-8 h-10">
+                    <div id="r3-current-player" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all duration-300"></div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 max-w-4xl mx-auto" id="r3-answers"></div>
+                
+                <div id="r3-message" class="mb-6 h-10 flex items-center justify-center"></div>
+                
+                <div class="flex gap-2 max-w-md mx-auto">
+                    <input type="text" id="r3-guess" placeholder="Enter answer..." class="flex-1 px-4 py-2.5 bg-black border border-violet-900/50 shadow-sm rounded-lg focus:outline-none focus:border-violet-600 focus:ring-2 focus:ring-violet-600/20 transition-all text-sm text-violet-50 placeholder-zinc-600" autocomplete="off" onkeypress="handleEnter(event, 'r3')">
+                    <button class="px-5 py-2.5 bg-violet-700 border border-violet-600 text-white shadow-sm text-sm font-medium rounded-lg hover:bg-violet-600 transition-colors" onclick="submitGuess('r3')">Submit</button>
+                </div>
+
+                <div class="mt-16 max-w-3xl mx-auto">
+                    <div class="flex flex-col sm:flex-row justify-center gap-3" id="r3-scores"></div>
+                </div>
+            </div>
+
+            <div id="final" class="game-section w-full">
+                <div class="max-w-xl mx-auto text-center">
+                    <div class="mb-10 text-xs font-medium text-zinc-500 tracking-widest uppercase">Match Conclusion</div>
+                    
+                    <div id="winner-display" class="mb-8"></div>
+
+                    <div class="flex flex-col gap-2 mb-12" id="final-scores"></div>
+                    
+                    <button class="px-6 py-2.5 bg-violet-700 text-white shadow-sm text-sm font-medium rounded-lg hover:bg-violet-600 transition-colors inline-flex items-center gap-2" onclick="restartGame()">
+                        <iconify-icon icon="solar:restart-linear" stroke-width="1.5"></iconify-icon>
+                        Start New Session
+                    </button>
+                </div>
             </div>
         </div>
 
     </main>
 
     <script>
-        // Game State
         const players = [
-            { color: '🔴', name: 'Player 1', score: 0, cssClass: 'red' },
-            { color: '🔵', name: 'Player 2', score: 0, cssClass: 'blue' },
-            { color: '🟢', name: 'Player 3', score: 0, cssClass: 'green' }
+            { color: '🟣', name: 'Player 1', score: 0, cssClass: 'violet' },
+            { color: '🟠', name: 'Player 2', score: 0, cssClass: 'amber' },
+            { color: '🔵', name: 'Player 3', score: 0, cssClass: 'blue' }
         ];
 
-        // Round 1 Data
         const r1Questions = [
-            { q: "Name the planets in the solar system", a: ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"] },
-            { q: "Name the elements in the periodic table (first 8)", a: ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen"] },
-            { q: "Name the colors of the rainbow", a: ["Red", "Orange", "Yellow", "Green", "Blue", "Indigo", "Violet", ""] },
-            { q: "Name the months of the year", a: ["January", "February", "March", "April", "May", "June", "July", "August"] },
-            { q: "Name the days of the week", a: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", ""] }
+            { q: "Identify planets comprising the solar system.", a: ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"] },
+            { q: "Identify the first 8 elements in the periodic table.", a: ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen"] },
+            { q: "Identify the colors present in a rainbow.", a: ["Red", "Orange", "Yellow", "Green", "Blue", "Indigo", "Violet", ""] },
+            { q: "Identify months of the Gregorian calendar.", a: ["January", "February", "March", "April", "May", "June", "July", "August"] },
+            { q: "Identify the days of the week.", a: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", ""] }
         ];
         let r1Question, r1Answers;
         let r1Revealed = {};
         let r1CurrentPlayer = 0;
         let r1TurnCount = 0;
-        let r1MaxTurns = 24;
-        let r1PlayerTurns = [0, 0, 0]; // Track turns per player
+        let r1PlayerTurns = [0, 0, 0]; 
 
-        // Round 2 Data
         const r2Questions = [
-            { q: "Name Olympic sports", a: ["Football", "Basketball", "Tennis", "Swimming", "Boxing", "Hockey", "Cycling", "Wrestling"] },
-            { q: "Name common fruits", a: ["Apple", "Banana", "Orange", "Mango", "Grapes", "Pineapple", "Strawberry", "Watermelon"] },
-            { q: "Name popular video games", a: ["Minecraft", "Fortnite", "PUBG", "Call of Duty", "Among Us", "Valorant", "FIFA", "GTA"] },
-            { q: "Name Indian cities", a: ["Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Jaipur"] },
-            { q: "Name Nobel Prize categories", a: ["Physics", "Chemistry", "Medicine", "Peace", "Literature", "Economics", "", ""] },
-            { q: "Name Bollywood actors", a: ["Shah Rukh", "Aamir", "Salman", "Akshay", "Ranbir", "Hrithik", "Ajay", "Saif"] },
-            { q: "Name world currencies", a: ["Dollar", "Euro", "Yen", "Pound", "Rupee", "Yuan", "Won", "Baht"] },
-            { q: "Name programming languages", a: ["Python", "JavaScript", "Java", "C++", "Go", "Rust", "Swift", "Ruby"] }
+            { q: "Recognized Olympic sports", a: ["Football", "Basketball", "Tennis", "Swimming", "Boxing", "Hockey", "Cycling", "Wrestling"] },
+            { q: "Commonly consumed fruits", a: ["Apple", "Banana", "Orange", "Mango", "Grapes", "Pineapple", "Strawberry", "Watermelon"] },
+            { q: "Widely recognized video games", a: ["Minecraft", "Fortnite", "PUBG", "Call of Duty", "Among Us", "Valorant", "FIFA", "GTA"] },
+            { q: "Major Indian metropolitan areas", a: ["Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Jaipur"] },
+            { q: "Nobel Prize award categories", a: ["Physics", "Chemistry", "Medicine", "Peace", "Literature", "Economics", "", ""] },
+            { q: "Prominent actors in Bollywood", a: ["Shah Rukh", "Aamir", "Salman", "Akshay", "Ranbir", "Hrithik", "Ajay", "Saif"] },
+            { q: "Global fiat currencies", a: ["Dollar", "Euro", "Yen", "Pound", "Rupee", "Yuan", "Won", "Baht"] },
+            { q: "Mainstream programming languages", a: ["Python", "JavaScript", "Java", "C++", "Go", "Rust", "Swift", "Ruby"] }
         ];
         let r2CurrentPlayer = 0;
         let r2CurrentQuestion = null;
         let r2Revealed = {};
         let r2Timer = null;
         let r2TimeLeft = 50;
-        let r2StealPhase = false;
-        let r2StealPlayer = 0;
         let r2AvailableOptions = [];
 
-        // Round 3 Data
         const r3Questions = [
-            { q: "Name the continents of the world", a: ["Asia", "Africa", "North America", "South America", "Antarctica", "Europe", "Australia", ""] },
-            { q: "Name the oceans of the world", a: ["Pacific", "Atlantic", "Indian", "Arctic", "Southern", "", "", ""] },
-            { q: "Name the countries in Europe", a: ["France", "Germany", "Italy", "Spain", "UK", "Poland", "Netherlands", "Belgium"] },
-            { q: "Name the states of India", a: ["Maharashtra", "Uttar Pradesh", "Karnataka", "Tamil Nadu", "West Bengal", "Gujarat", "Rajasthan", "Madhya Pradesh"] },
-            { q: "Name the largest countries by area", a: ["Russia", "Canada", "USA", "China", "Brazil", "Australia", "India", "Argentina"] }
+            { q: "Identify the continents of Earth.", a: ["Asia", "Africa", "North America", "South America", "Antarctica", "Europe", "Australia", ""] },
+            { q: "Identify the oceans of Earth.", a: ["Pacific", "Atlantic", "Indian", "Arctic", "Southern", "", "", ""] },
+            { q: "Identify sovereign states located in Europe.", a: ["France", "Germany", "Italy", "Spain", "UK", "Poland", "Netherlands", "Belgium"] },
+            { q: "Identify states within the Republic of India.", a: ["Maharashtra", "Uttar Pradesh", "Karnataka", "Tamil Nadu", "West Bengal", "Gujarat", "Rajasthan", "Madhya Pradesh"] },
+            { q: "Identify the largest sovereign states by land area.", a: ["Russia", "Canada", "USA", "China", "Brazil", "Australia", "India", "Argentina"] }
         ];
         let r3Question, r3Answers;
         let r3Revealed = {};
         let r3CurrentPlayer = 0;
         let r3BonusGiven = false;
 
-        // Visual Utilities
         function getCardClasses(teamClass) {
-            if (teamClass === 'red') return 'border-red-500/20 bg-red-500/10 text-red-200 shadow-[inset_0_0_12px_rgba(239,68,68,0.1)]';
-            if (teamClass === 'blue') return 'border-blue-500/20 bg-blue-500/10 text-blue-200 shadow-[inset_0_0_12px_rgba(59,130,246,0.1)]';
-            if (teamClass === 'green') return 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200 shadow-[inset_0_0_12px_rgba(16,185,129,0.1)]';
-            if (teamClass === 'grey') return 'border-zinc-800 bg-zinc-900 text-zinc-500';
-            return 'border-zinc-800 border-dashed bg-zinc-950 text-zinc-600'; // hidden
+            if (teamClass === 'violet') return 'border-violet-800 bg-violet-900/20 text-violet-300 shadow-sm';
+            if (teamClass === 'amber') return 'border-amber-800 bg-amber-900/20 text-amber-300 shadow-sm';
+            if (teamClass === 'blue') return 'border-blue-800 bg-blue-900/20 text-blue-300 shadow-sm';
+            if (teamClass === 'grey') return 'border-zinc-800 bg-zinc-900/50 text-zinc-500 shadow-sm';
+            return 'border-violet-900/30 bg-black/50 text-zinc-600 shadow-sm';
         }
 
-        // Game State Variables
         let socket = null;
         let localPlayerId = null;
         let isHost = false;
@@ -312,18 +340,12 @@
                 socket = io();
                 
                 socket.on('player_joined', (data) => {
-                    if (data.players) {
-                        updateWaitingPlayersList(data.players);
-                    }
+                    if (data.players) updateWaitingPlayersList(data.players);
                 });
                 
                 socket.on('game_updated', (gameState) => {
                     if (gameState.action === 'start_game' && !isHost) {
-                        // Sync players array from host
-                        players.forEach((p, i) => {
-                            if (gameState.players[i]) p.name = gameState.players[i].name;
-                        });
-                        
+                        players.forEach((p, i) => { if (gameState.players[i]) p.name = gameState.players[i].name; });
                         r1Question = gameState.r1Question;
                         r1Answers = gameState.r1Answers;
                         r1Revealed = {};
@@ -334,7 +356,6 @@
                         document.getElementById('r1-question').textContent = r1Question;
                         updateR1Board();
                         updateScores('r1');
-                        
                         showSection(gameState.currentSection);
                     }
                 });
@@ -343,11 +364,8 @@
         
         function updateWaitingPlayersList(roomPlayers) {
             const waitingText = document.getElementById('waitingPlayers');
-            if (waitingText) {
-                waitingText.textContent = `Players in room: ${roomPlayers.length}/3`;
-            }
+            if (waitingText) waitingText.textContent = `Connected: ${roomPlayers.length}/3`;
             
-            // Sync players array with backend length
             roomPlayers.forEach((p, idx) => {
                 if (idx < players.length) {
                     players[idx].name = p.name;
@@ -355,35 +373,25 @@
                 }
             });
             
-            // If host sees 2+ players, pop open setup automatically if not already
             if (roomPlayers.length >= 2 && !document.getElementById('setup').classList.contains('active') && isHost) {
                 showSection('setup');
             }
-            
             if (document.getElementById('setup').classList.contains('active')) {
                 initPlayerSetup();
             }
         }
 
-        // Initialize Player Setup
         function initPlayerSetup() {
             const container = document.getElementById('playerInputs');
             container.innerHTML = players.map((p, i) => `
                 <div class="flex items-center gap-3 w-full">
-                    <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-zinc-950 border border-zinc-800 text-lg">${p.color}</div>
-                    <input type="text" id="player${i}" placeholder="${p.name}" value="${p.name}" ${gameMode === 'remote' && p.remoteId !== localPlayerId ? 'disabled' : ''} class="flex-1 px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-white focus:border-white transition-all text-sm text-white placeholder-zinc-500 disabled:opacity-50">
+                    <div class="flex items-center justify-center w-8 h-8 rounded-full border border-violet-900/50 bg-black shadow-sm text-xs">${p.color}</div>
+                    <input type="text" id="player${i}" placeholder="${p.name}" value="${p.name}" ${gameMode === 'remote' && p.remoteId !== localPlayerId ? 'disabled' : ''} class="flex-1 px-3 py-2 bg-transparent border-b border-violet-900/50 focus:outline-none focus:border-violet-600 transition-all text-sm text-violet-50 placeholder-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed">
                 </div>
             `).join('');
 
-            // Only host can start game
             const btn = document.querySelector('#setup button[onclick="startGame()"]');
-            if (btn) {
-                if (gameMode === 'remote' && !isHost) {
-                    btn.style.display = 'none';
-                } else {
-                    btn.style.display = 'block';
-                }
-            }
+            if (btn) btn.style.display = (gameMode === 'remote' && !isHost) ? 'none' : 'flex';
         }
 
         function startLocalGame() {
@@ -395,13 +403,6 @@
         function showRoomCodeInput() {
             document.getElementById('roomCodeInput').classList.add('show');
             document.getElementById('createRoomOptions').classList.add('show');
-        }
-
-        function hideRemoteOptions() {
-            document.getElementById('roomCodeInput').classList.remove('show');
-            document.getElementById('createRoomOptions').classList.remove('show');
-            document.getElementById('createRoomSection').classList.remove('show');
-            document.querySelectorAll('input').forEach(i => i.value = '');
         }
 
         async function joinRemoteGame() {
@@ -418,7 +419,7 @@
                 const joinRes = await fetch(`/api/join-room/${roomCode}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ player_name: playerName, player_color: '🔵' })
+                    body: JSON.stringify({ player_name: playerName, player_color: '🟠' })
                 });
                 
                 if (!joinRes.ok) {
@@ -430,7 +431,6 @@
                 }
                 
                 const joinData = await joinRes.json();
-                
                 currentRoomCode = roomCode;
                 localPlayerName = playerName;
                 localPlayerId = joinData.player.id;
@@ -448,7 +448,6 @@
                 updateWaitingPlayersList(joinData.room.players);
             } catch (error) {
                 console.error(error);
-                alert('Connection error');
                 btn.disabled = false;
                 btn.textContent = origText;
             }
@@ -456,10 +455,7 @@
 
         async function createRemoteRoom() {
             const playerName = document.getElementById('hostName').value.trim();
-            if (!playerName) {
-                alert('Please enter your name');
-                return;
-            }
+            if (!playerName) return;
             
             const btn = document.querySelector('#createRoomOptions button');
             const origText = btn.textContent;
@@ -474,7 +470,7 @@
                 const joinRes = await fetch(`/api/join-room/${roomCode}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ player_name: playerName, player_color: '🔴' })
+                    body: JSON.stringify({ player_name: playerName, player_color: '🟣' })
                 });
                 const joinData = await joinRes.json();
                 
@@ -498,14 +494,12 @@
                 
                 updateWaitingPlayersList([joinData.player]);
             } catch (error) {
-                console.error('Error creating room:', error);
-                alert('Failed to create room. Please try again.');
+                console.error(error);
                 btn.disabled = false;
                 btn.textContent = origText;
             }
         }
 
-        // Start Game
         function startGame() {
             players.forEach((p, i) => {
                 const name = document.getElementById(`player${i}`).value;
@@ -528,7 +522,6 @@
             }
         }
 
-        // Initialize Round 1
         function initRound1() {
             const randomIdx = Math.floor(Math.random() * r1Questions.length);
             r1Question = r1Questions[randomIdx].q;
@@ -542,34 +535,30 @@
             updateScores('r1');
         }
 
-        // Update Round 1 Board
         function updateR1Board() {
             const player = players[r1CurrentPlayer];
             const indicator = document.getElementById('r1-current-player');
             const turnsLeft = 3 - r1PlayerTurns[r1CurrentPlayer];
-            indicator.innerHTML = `<span class="opacity-70">${player.color}</span> ${player.name}'s Turn <span class="ml-2 text-zinc-500">(${turnsLeft} turns left)</span>`;
+            indicator.innerHTML = `<span class="opacity-70">${player.color}</span> <span class="text-violet-50">${player.name}</span> <span class="ml-1 text-zinc-500 font-normal">· ${turnsLeft} remaining</span>`;
             
-            // Adjust indicator subtle styling based on team
-            indicator.className = `py-2.5 px-6 rounded-full border bg-zinc-900 inline-flex items-center gap-2 text-sm font-medium text-white shadow-sm transition-all duration-300 ${player.cssClass === 'red' ? 'border-red-900/50' : player.cssClass === 'blue' ? 'border-blue-900/50' : 'border-emerald-900/50'}`;
+            indicator.className = `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border bg-zinc-900 shadow-sm text-xs font-medium transition-all duration-300 ${player.cssClass === 'violet' ? 'border-violet-800' : player.cssClass === 'amber' ? 'border-amber-800' : 'border-blue-800'}`;
 
             const answersHtml = r1Answers.map((ans, i) => {
-                let display = '<iconify-icon icon="solar:question-circle-linear" class="text-xl opacity-50"></iconify-icon>';
+                let display = '<iconify-icon icon="solar:minus-linear" class="text-xl opacity-20" stroke-width="1.5"></iconify-icon>';
                 let cssClass = getCardClasses('hidden');
                 
                 if (i in r1Revealed) {
                     cssClass = getCardClasses(r1Revealed[i]);
-                    display = `<span class="font-medium tracking-tight">${ans}</span>`;
+                    display = `<span class="tracking-tight">${ans}</span>`;
                 }
-                return `<div class="p-4 rounded-xl border flex items-center justify-center text-center transition-all duration-300 min-h-[4.5rem] text-sm ${cssClass}">${display}</div>`;
+                return `<div class="p-3 rounded-lg border flex items-center justify-center text-center transition-all duration-500 min-h-[3.5rem] text-sm ${cssClass}">${display}</div>`;
             }).join('');
             document.getElementById('r1-answers').innerHTML = answersHtml;
         }
 
-        // Submit Guess 
         function submitGuess(round) {
             const input = document.getElementById(`${round}-guess`);
             const guess = input.value.trim().toLowerCase();
-            
             if (!guess) return;
 
             if (round === 'r1') {
@@ -577,11 +566,11 @@
                 if (idx !== -1 && !(idx in r1Revealed)) {
                     r1Revealed[idx] = players[r1CurrentPlayer].cssClass;
                     players[r1CurrentPlayer].score += 10;
-                    showMessage(`${round}-message`, `Correct! "${r1Answers[idx]}" revealed.`, 'success');
+                    showMessage(`${round}-message`, `Identified: ${r1Answers[idx]}`, 'success');
                 } else if (idx in r1Revealed) {
-                    showMessage(`${round}-message`, 'Already claimed!', 'error');
+                    showMessage(`${round}-message`, 'Previously identified.', 'error');
                 } else {
-                    showMessage(`${round}-message`, 'Incorrect guess.', 'error');
+                    showMessage(`${round}-message`, 'Invalid entry.', 'error');
                 }
                 input.value = '';
                 updateR1Board();
@@ -590,9 +579,7 @@
                 r1TurnCount++;
                 r1PlayerTurns[r1CurrentPlayer]++;
                 
-                // Check if current player has used all 3 turns
                 if (r1PlayerTurns[r1CurrentPlayer] >= 3) {
-                    // Move to next player who still has turns left
                     let nextPlayer = (r1CurrentPlayer + 1) % 3;
                     let foundNext = false;
                     for (let i = 0; i < 3; i++) {
@@ -603,24 +590,22 @@
                         nextPlayer = (nextPlayer + 1) % 3;
                     }
                     
-                    // End round if all players used their 3 turns or all answers revealed
                     if (!foundNext || Object.keys(r1Revealed).length === r1Answers.length) {
                         for (let i = 0; i < r1Answers.length; i++) {
                             if (!(i in r1Revealed)) r1Revealed[i] = 'grey';
                         }
                         updateR1Board();
-                        showMessage(`${round}-message`, 'Round 1 Complete!', 'info');
+                        showMessage(`${round}-message`, 'Phase completed.', 'info');
                     } else {
                         r1CurrentPlayer = nextPlayer;
                         updateR1Board();
                     }
                 } else if (Object.keys(r1Revealed).length === r1Answers.length) {
-                    // All answers revealed before players use all turns
                     for (let i = 0; i < r1Answers.length; i++) {
                         if (!(i in r1Revealed)) r1Revealed[i] = 'grey';
                     }
                     updateR1Board();
-                    showMessage(`${round}-message`, 'Round 1 Complete!', 'info');
+                    showMessage(`${round}-message`, 'Phase completed.', 'info');
                 } else {
                     r1CurrentPlayer = (r1CurrentPlayer + 1) % 3;
                     updateR1Board();
@@ -632,11 +617,11 @@
                 if (idx !== -1 && !(idx in r2Revealed)) {
                     r2Revealed[idx] = players[r2CurrentPlayer].cssClass;
                     players[r2CurrentPlayer].score += 15;
-                    showMessage(`${round}-message`, `Correct! "${answers[idx]}" revealed.`, 'success');
+                    showMessage(`${round}-message`, `Identified: ${answers[idx]}`, 'success');
                 } else if (idx in r2Revealed) {
-                    showMessage(`${round}-message`, 'Already claimed!', 'error');
+                    showMessage(`${round}-message`, 'Previously identified.', 'error');
                 } else {
-                    showMessage(`${round}-message`, 'Incorrect guess.', 'error');
+                    showMessage(`${round}-message`, 'Invalid entry.', 'error');
                 }
                 input.value = '';
                 updateR2Board();
@@ -647,17 +632,17 @@
                 if (idx !== -1 && !(idx in r3Revealed)) {
                     r3Revealed[idx] = players[r3CurrentPlayer].cssClass;
                     players[r3CurrentPlayer].score += 10;
-                    showMessage(`${round}-message`, `Correct! "${r3Answers[idx]}" revealed.`, 'success');
+                    showMessage(`${round}-message`, `Identified: ${r3Answers[idx]}`, 'success');
 
                     if (Object.keys(r3Revealed).length === r3Answers.length && !r3BonusGiven) {
                         players[r3CurrentPlayer].score += 50;
                         r3BonusGiven = true;
-                        showMessage(`${round}-message`, `${players[r3CurrentPlayer].name} cleared the board! +50 bonus!`, 'success');
+                        showMessage(`${round}-message`, `Board cleared. Bonus applied.`, 'success');
                     }
                 } else if (idx in r3Revealed) {
-                    showMessage(`${round}-message`, 'Already claimed!', 'error');
+                    showMessage(`${round}-message`, 'Previously identified.', 'error');
                 } else {
-                    showMessage(`${round}-message`, 'Incorrect guess.', 'error');
+                    showMessage(`${round}-message`, 'Invalid entry.', 'error');
                 }
                 input.value = '';
                 updateR3Board();
@@ -665,32 +650,27 @@
             }
         }
 
-        // Show message
         function showMessage(id, text, type) {
-            let colors = type === 'success' ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10' :
-                         type === 'error' ? 'text-red-400 border-red-500/20 bg-red-500/10' :
-                         'text-blue-400 border-blue-500/20 bg-blue-500/10';
+            let style = type === 'success' ? 'text-teal-400 border-teal-900/60 bg-teal-900/20 shadow-sm' :
+                        type === 'error' ? 'text-rose-400 border-rose-900/60 bg-rose-900/20 shadow-sm' :
+                        'text-violet-400 border-violet-900/60 bg-violet-900/20 shadow-sm';
             
-            document.getElementById(id).innerHTML = `<div class="px-4 py-2 rounded-lg border text-xs font-medium ${colors} animate-in fade-in slide-in-from-bottom-2 duration-300 flex items-center gap-2"><iconify-icon icon="${type === 'success' ? 'solar:check-circle-linear' : type === 'error' ? 'solar:close-circle-linear' : 'solar:info-circle-linear'}"></iconify-icon>${text}</div>`;
+            const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'close-circle' : 'info-circle';
             
-            // clear after 3s
+            document.getElementById(id).innerHTML = `<div class="px-3 py-1.5 rounded-md border text-xs font-medium ${style} flex items-center gap-2"><iconify-icon icon="solar:${icon}-linear"></iconify-icon>${text}</div>`;
+            
             setTimeout(() => {
                 const el = document.getElementById(id);
                 if(el.innerText.includes(text)) el.innerHTML = '';
-            }, 3000);
+            }, 2500);
         }
 
-        // Update Scores
         function updateScores(prefix) {
             const html = players.map(p => {
-                let borderClass = p.cssClass === 'red' ? 'border-red-500/20 bg-gradient-to-b from-red-500/5 to-transparent' : 
-                                  p.cssClass === 'blue' ? 'border-blue-500/20 bg-gradient-to-b from-blue-500/5 to-transparent' : 
-                                  'border-emerald-500/20 bg-gradient-to-b from-emerald-500/5 to-transparent';
-                
                 return `
-                <div class="flex-1 min-w-[140px] p-5 rounded-2xl border ${borderClass} text-center flex flex-col items-center gap-1 shadow-sm">
+                <div class="flex-1 min-w-[120px] p-4 rounded-xl border border-violet-900/50 bg-zinc-900/80 backdrop-blur-sm shadow-sm flex flex-col items-center gap-1">
                     <h3 class="text-xs font-medium text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">${p.color} ${p.name}</h3>
-                    <div class="text-3xl font-semibold tracking-tighter text-white mt-1 tabular-nums">${p.score}</div>
+                    <div class="text-xl font-medium tracking-tight text-violet-50 mt-0.5 tabular-nums">${p.score}</div>
                 </div>
             `}).join('');
             
@@ -698,13 +678,11 @@
             if(scoreContainer) scoreContainer.innerHTML = html;
         }
 
-        // Show Section
         function showSection(id) {
             document.querySelectorAll('.game-section').forEach(s => s.classList.remove('active'));
             document.getElementById('gameModeSelection').classList.remove('active');
             
             document.getElementById(id).classList.add('active');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
             
             const backBtn = document.getElementById('goBackButton');
             if (backBtn) {
@@ -716,7 +694,6 @@
             }
         }
 
-        // Next Round
         function nextRound(num) {
             if (num === 2) {
                 showSection('round2');
@@ -727,33 +704,29 @@
             }
         }
 
-        // Initialize Round 2
         function initRound2() {
             const order = [...players].sort((a, b) => a.score - b.score);
             r2CurrentPlayer = players.indexOf(order[0]);
             
             const player = players[r2CurrentPlayer];
-            document.getElementById('r2-title').innerHTML = `<span class="opacity-70">${player.color}</span> ${player.name}, Select Topic`;
+            document.getElementById('r2-title').innerHTML = `<span class="opacity-70">${player.color}</span> <span class="text-violet-50">${player.name}</span> <span class="text-zinc-500 font-normal ml-1">select category</span>`;
             
             document.getElementById('r2-question-choose').classList.add('active');
             document.getElementById('r2-game').classList.remove('active');
 
-            // Shuffle and pick 3 random questions
             const shuffled = [...r2Questions].sort(() => Math.random() - 0.5);
             r2AvailableOptions = shuffled.slice(0, 3);
             
             const optionsHtml = r2AvailableOptions.map((q, i) => `
-                <button class="p-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 hover:bg-zinc-800 hover:border-zinc-700 transition-all group flex flex-col gap-3 text-left relative overflow-hidden" onclick="chooseR2Question(${i})">
-                    <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <iconify-icon icon="solar:folder-with-files-linear" class="text-2xl text-zinc-500 group-hover:text-white transition-colors"></iconify-icon>
-                    <span class="text-sm font-medium text-zinc-300 group-hover:text-white">${q.q}</span>
+                <button class="p-4 rounded-xl border border-violet-900/50 bg-zinc-900 hover:bg-violet-900/20 hover:border-violet-700 transition-all flex flex-col gap-2 text-left shadow-sm" onclick="chooseR2Question(${i})">
+                    <iconify-icon icon="solar:folder-with-files-linear" class="text-lg text-violet-400" stroke-width="1.5"></iconify-icon>
+                    <span class="text-sm font-medium text-violet-50">${q.q}</span>
                 </button>
             `).join('');
             document.getElementById('r2-options').innerHTML = optionsHtml;
             updateScores('r2');
         }
 
-        // Choose Round 2 Question
         function chooseR2Question(idx) {
             r2CurrentQuestion = r2AvailableOptions[idx];
             r2Revealed = {};
@@ -767,31 +740,30 @@
             updateR2Board();
         }
 
-        // Start Timer
         function startTimer() {
             const timerEl = document.getElementById('r2-timer');
             timerEl.textContent = r2TimeLeft;
             r2Timer = setInterval(() => {
                 r2TimeLeft--;
                 timerEl.textContent = r2TimeLeft;
-                if(r2TimeLeft <= 10) timerEl.classList.add('text-red-400');
+                if(r2TimeLeft <= 10) timerEl.classList.replace('text-violet-50', 'text-rose-400');
                 if (r2TimeLeft <= 0) {
                     stopTimer();
                 }
             }, 1000);
         }
 
-        // Stop Timer
         function stopTimer() {
             clearInterval(r2Timer);
             const timerEl = document.getElementById('r2-timer');
-            timerEl.classList.remove('text-red-400');
+            timerEl.classList.remove('text-rose-400');
+            timerEl.classList.add('text-violet-50');
             
             for (let i = 0; i < r2CurrentQuestion.a.length; i++) {
                 if (!(i in r2Revealed)) r2Revealed[i] = 'grey';
             }
             updateR2Board();
-            showMessage('r2-message', 'Turn ended.', 'info');
+            showMessage('r2-message', 'Timer expired.', 'info');
 
             const remaining = r2Questions.length;
             if (remaining > 1) {
@@ -802,27 +774,25 @@
                 const qIdx = r2Questions.indexOf(r2CurrentQuestion);
                 if (qIdx > -1) r2Questions.splice(qIdx, 1);
 
-                setTimeout(() => { initRound2(); }, 2500);
+                setTimeout(() => { initRound2(); }, 2000);
             }
         }
 
-        // Update Round 2 Board
         function updateR2Board() {
             const answers = r2CurrentQuestion.a;
             const answersHtml = answers.map((ans, i) => {
-                let display = '<iconify-icon icon="solar:question-circle-linear" class="text-xl opacity-50"></iconify-icon>';
+                let display = '<iconify-icon icon="solar:minus-linear" class="text-xl opacity-20" stroke-width="1.5"></iconify-icon>';
                 let cssClass = getCardClasses('hidden');
                 
                 if (i in r2Revealed) {
                     cssClass = getCardClasses(r2Revealed[i]);
-                    display = `<span class="font-medium tracking-tight">${ans}</span>`;
+                    display = `<span class="tracking-tight">${ans}</span>`;
                 }
-                return `<div class="p-4 rounded-xl border flex items-center justify-center text-center transition-all duration-300 min-h-[4.5rem] text-sm ${cssClass}">${display}</div>`;
+                return `<div class="p-3 rounded-lg border flex items-center justify-center text-center transition-all duration-500 min-h-[3.5rem] text-sm ${cssClass}">${display}</div>`;
             }).join('');
             document.getElementById('r2-answers').innerHTML = answersHtml;
         }
 
-        // Initialize Round 3
         function initRound3() {
             const randomIdx = Math.floor(Math.random() * r3Questions.length);
             r3Question = r3Questions[randomIdx].q;
@@ -835,33 +805,31 @@
             updateScores('r3');
         }
 
-        // Update Round 3 Board
         function updateR3Board() {
             const player = players[r3CurrentPlayer];
             const indicator = document.getElementById('r3-current-player');
-            indicator.innerHTML = `<span class="opacity-70">${player.color}</span> ${player.name}'s Turn`;
-            indicator.className = `py-2.5 px-6 rounded-full border bg-zinc-900 inline-flex items-center gap-2 text-sm font-medium text-white shadow-sm transition-all duration-300 ${player.cssClass === 'red' ? 'border-red-900/50' : player.cssClass === 'blue' ? 'border-blue-900/50' : 'border-emerald-900/50'}`;
+            indicator.innerHTML = `<span class="opacity-70">${player.color}</span> <span class="text-violet-50">${player.name}</span> <span class="text-zinc-500 font-normal ml-1">· Active</span>`;
+            indicator.className = `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border bg-zinc-900 shadow-sm text-xs font-medium transition-all duration-300 ${player.cssClass === 'violet' ? 'border-violet-800' : player.cssClass === 'amber' ? 'border-amber-800' : 'border-blue-800'}`;
 
             const answersHtml = r3Answers.map((ans, i) => {
-                let display = '<iconify-icon icon="solar:question-circle-linear" class="text-xl opacity-50"></iconify-icon>';
+                let display = '<iconify-icon icon="solar:minus-linear" class="text-xl opacity-20" stroke-width="1.5"></iconify-icon>';
                 let cssClass = getCardClasses('hidden');
                 
                 if (i in r3Revealed) {
                     cssClass = getCardClasses(r3Revealed[i]);
-                    display = `<span class="font-medium tracking-tight">${ans}</span>`;
+                    display = `<span class="tracking-tight">${ans}</span>`;
                 }
-                return `<div class="p-4 rounded-xl border flex items-center justify-center text-center transition-all duration-300 min-h-[4.5rem] text-sm ${cssClass}">${display}</div>`;
+                return `<div class="p-3 rounded-lg border flex items-center justify-center text-center transition-all duration-500 min-h-[3.5rem] text-sm ${cssClass}">${display}</div>`;
             }).join('');
             document.getElementById('r3-answers').innerHTML = answersHtml;
 
             if (Object.keys(r3Revealed).length === r3Answers.length) {
-                setTimeout(() => { showFinalScores(); }, 2000);
+                setTimeout(() => { showFinalScores(); }, 1500);
             } else {
                 r3CurrentPlayer = (r3CurrentPlayer + 1) % 3;
             }
         }
 
-        // Show Final Scores
         function showFinalScores() {
             showSection('final');
             
@@ -869,27 +837,28 @@
             const winner = sortedPlayers[0];
             
             document.getElementById('winner-display').innerHTML = `
-                <div class="text-sm font-medium text-yellow-500/80 mb-2 uppercase tracking-widest relative z-10">Champion</div>
-                <h3 class="text-2xl sm:text-3xl font-semibold tracking-tighter text-white flex items-center gap-3 relative z-10">
-                    ${winner.color} ${winner.name}
-                </h3>
-                <div class="text-5xl font-semibold tracking-tighter text-yellow-500 mt-2 tabular-nums relative z-10">${winner.score} <span class="text-lg text-yellow-500/50 font-medium">PTS</span></div>
+                <div class="inline-flex flex-col items-center justify-center p-8 rounded-2xl border border-violet-900/50 bg-zinc-900/80 backdrop-blur-sm shadow-sm relative">
+                    <iconify-icon icon="solar:cup-star-linear" class="text-3xl text-amber-400 mb-4" stroke-width="1.5"></iconify-icon>
+                    <h3 class="text-lg font-medium tracking-tight text-violet-50 flex items-center gap-2">
+                        ${winner.color} ${winner.name}
+                    </h3>
+                    <div class="text-4xl font-medium tracking-tighter text-violet-50 mt-2 tabular-nums">${winner.score} <span class="text-sm text-zinc-500 font-normal">pts</span></div>
+                </div>
             `;
 
             const finalScoresHtml = sortedPlayers.slice(1).map((p, index) => `
-                <div class="flex items-center justify-between p-4 rounded-2xl border border-zinc-800 bg-zinc-900/40 w-full">
+                <div class="flex items-center justify-between p-3 rounded-lg border border-violet-900/50 bg-zinc-900 shadow-sm w-full">
                     <div class="flex items-center gap-3">
-                        <span class="text-zinc-500 text-xs font-semibold w-4">#${index + 2}</span>
+                        <span class="text-zinc-500 text-xs font-medium w-4">0${index + 2}</span>
                         <span class="text-sm font-medium text-zinc-300">${p.color} ${p.name}</span>
                     </div>
-                    <span class="text-base font-semibold text-white tabular-nums">${p.score}</span>
+                    <span class="text-sm font-medium text-violet-50 tabular-nums">${p.score} pts</span>
                 </div>
             `).join('');
             
             document.getElementById('final-scores').innerHTML = finalScoresHtml;
         }
 
-        // Restart Game
         function restartGame() {
             players.forEach(p => p.score = 0);
             r1Revealed = {};
@@ -899,17 +868,16 @@
             r3BonusGiven = false;
             r2Questions.length = 0;
             r2Questions.push(
-                { q: "Name Olympic sports", a: ["Football", "Basketball", "Tennis", "Swimming", "Boxing", "Hockey", "Cycling", "Wrestling"] },
-                { q: "Name common fruits", a: ["Apple", "Banana", "Orange", "Mango", "Grapes", "Pineapple", "Strawberry", "Watermelon"] },
-                { q: "Name popular video games", a: ["Minecraft", "Fortnite", "PUBG", "Call of Duty", "Among Us", "Valorant", "FIFA", "GTA"] },
-                { q: "Name Indian cities", a: ["Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Jaipur"] },
-                { q: "Name Nobel Prize categories", a: ["Physics", "Chemistry", "Medicine", "Peace", "Literature", "Economics", "", ""] },
-                { q: "Name Bollywood actors", a: ["Shah Rukh", "Aamir", "Salman", "Akshay", "Ranbir", "Hrithik", "Ajay", "Saif"] },
-                { q: "Name world currencies", a: ["Dollar", "Euro", "Yen", "Pound", "Rupee", "Yuan", "Won", "Baht"] },
-                { q: "Name programming languages", a: ["Python", "JavaScript", "Java", "C++", "Go", "Rust", "Swift", "Ruby"] }
+                { q: "Recognized Olympic sports", a: ["Football", "Basketball", "Tennis", "Swimming", "Boxing", "Hockey", "Cycling", "Wrestling"] },
+                { q: "Commonly consumed fruits", a: ["Apple", "Banana", "Orange", "Mango", "Grapes", "Pineapple", "Strawberry", "Watermelon"] },
+                { q: "Widely recognized video games", a: ["Minecraft", "Fortnite", "PUBG", "Call of Duty", "Among Us", "Valorant", "FIFA", "GTA"] },
+                { q: "Major Indian metropolitan areas", a: ["Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Jaipur"] },
+                { q: "Nobel Prize award categories", a: ["Physics", "Chemistry", "Medicine", "Peace", "Literature", "Economics", "", ""] },
+                { q: "Prominent actors in Bollywood", a: ["Shah Rukh", "Aamir", "Salman", "Akshay", "Ranbir", "Hrithik", "Ajay", "Saif"] },
+                { q: "Global fiat currencies", a: ["Dollar", "Euro", "Yen", "Pound", "Rupee", "Yuan", "Won", "Baht"] },
+                { q: "Mainstream programming languages", a: ["Python", "JavaScript", "Java", "C++", "Go", "Rust", "Swift", "Ruby"] }
             );
             
-            // Reset Round 1 and 3 questions
             const r1RandomIdx = Math.floor(Math.random() * r1Questions.length);
             r1Question = r1Questions[r1RandomIdx].q;
             r1Answers = r1Questions[r1RandomIdx].a;
@@ -918,7 +886,6 @@
             r3Question = r3Questions[r3RandomIdx].q;
             r3Answers = r3Questions[r3RandomIdx].a;
             
-            // Reset UI states
             document.querySelectorAll('input').forEach(i => i.value = '');
             document.getElementById('gameModeSelection').classList.add('active');
             document.getElementById('roomCodeInput').classList.remove('show');
@@ -928,11 +895,8 @@
             showSection('gameModeSelection');
         }
 
-        // Handle Enter key
         function handleEnter(event, round) {
-            if (event.key === 'Enter') {
-                submitGuess(round);
-            }
+            if (event.key === 'Enter') submitGuess(round);
         }
 
     </script>
