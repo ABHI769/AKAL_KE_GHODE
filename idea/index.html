@@ -621,35 +621,32 @@
 
                 // R3 Parallel claim confirmed by server — apply to all players
                 socket.on('r3_claim_accepted', (data) => {
-                    const { answer_idx, player_id, player_css_class, score_delta, bonus } = data;
+                    // Server confirmed the claim — update ALL clients identically.
+                    // No special-casing for claimant vs others; everyone applies the same update.
+                    const { answer_idx, player_id, player_css_class, score_delta } = data;
                     r3Revealed[answer_idx] = player_css_class;
-                    if (player_id !== localPlayerId) {
-                        players[player_id].score += score_delta;
-                        if (bonus && !r3BonusGiven) {
-                            players[player_id].score += 50;
-                            r3BonusGiven = true;
-                            showMessage('r3-message', `${players[player_id].name} cleared the board! +50 bonus!`, 'success');
-                        } else {
-                            showMessage('r3-message', `${players[player_id].name} claimed: ${r3Answers[answer_idx]}`, 'success');
-                        }
+                    players[player_id].score += score_delta;
+                    const allFound = Object.keys(r3Revealed).length === r3Answers.length;
+                    if (allFound && !r3BonusGiven) {
+                        players[player_id].score += 50;
+                        r3BonusGiven = true;
+                        showMessage('r3-message', `${players[player_id].name} cleared the board! +50 bonus!`, 'success');
+                    } else {
+                        showMessage('r3-message', `${players[player_id].name} claimed: ${r3Answers[answer_idx]}`, 'success');
                     }
                     renderR3Board();
                     updateScores('r3');
-                    if (Object.keys(r3Revealed).length === r3Answers.length) {
+                    if (allFound) {
                         setTimeout(() => { showFinalScores(); }, 1500);
                     }
                 });
 
-                // R3 Parallel claim rejected — someone else claimed first
+                // R3 Parallel claim rejected — someone else was faster
                 socket.on('r3_claim_rejected', (data) => {
-                    const { answer_idx, player_id } = data;
-                    if (player_id === localPlayerId) {
-                        delete r3Revealed[answer_idx];
-                        players[localPlayerId].score -= 10;
-                        if (r3BonusGiven) { players[localPlayerId].score -= 50; r3BonusGiven = false; }
+                    // No score revert needed — we never applied an optimistic update.
+                    // The board will update correctly via r3_claim_accepted for the winner.
+                    if (data.player_id === localPlayerId) {
                         showMessage('r3-message', 'Too slow! Someone else claimed that first.', 'error');
-                        renderR3Board();
-                        updateScores('r3');
                     }
                 });
             }
@@ -1097,26 +1094,16 @@
                 if (idx !== -1) {
                     const claimingPlayer = (gameMode === 'remote' && localPlayerId !== null) ? localPlayerId : r3CurrentPlayer;
                     if (gameMode === 'remote' && socket) {
-                        // Optimistic local update
-                        r3Revealed[idx] = players[claimingPlayer].cssClass;
-                        players[claimingPlayer].score += 10;
-                        const allFound = Object.keys(r3Revealed).length === r3Answers.length;
-                        if (allFound && !r3BonusGiven) {
-                            players[claimingPlayer].score += 50;
-                            r3BonusGiven = true;
-                        }
-                        renderR3Board();
-                        updateScores('r3');
-                        showMessage(`${round}-message`, `Claimed: ${r3Answers[idx]}`, 'success');
-                        // Send claim to server for atomic validation
+                        // NO optimistic update — wait for server confirmation.
+                        // This prevents race conditions where two players claim the same answer.
                         socket.emit('r3_claim', {
                             room_id: currentRoomCode,
                             answer_idx: idx,
                             player_id: localPlayerId,
                             player_css_class: players[localPlayerId].cssClass,
-                            score_delta: 10,
-                            bonus: allFound
+                            score_delta: 10
                         });
+                        showMessage(`${round}-message`, 'Submitting…', 'info');
                     } else {
                         // Local mode: update immediately, cycle current player for UI fairness
                         r3Revealed[idx] = players[claimingPlayer].cssClass;
