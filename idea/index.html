@@ -273,9 +273,9 @@
 
     <script>
         const players = [
-            { color: '🟣', name: 'Player 1', score: 0, cssClass: 'violet' },
-            { color: '🟠', name: 'Player 2', score: 0, cssClass: 'amber' },
-            { color: '🔵', name: 'Player 3', score: 0, cssClass: 'blue' }
+            { color: '🔴', name: 'Player 1', score: 0, cssClass: 'red' },
+            { color: '🔵', name: 'Player 2', score: 0, cssClass: 'blue' },
+            { color: '🟢', name: 'Player 3', score: 0, cssClass: 'green' }
         ];
 
         const r1Questions = [
@@ -284,12 +284,12 @@
             { "q": "Identify the colors present in a rainbow.", "a": ["Red", "Orange", "Yellow", "Green", "Blue", "Indigo", "Violet", ""] },
             { "q": "Identify months of the Gregorian calendar.", "a": ["January", "February", "March", "April", "May", "June", "July", "August"] },
             { "q": "Identify the days of the week.", "a": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", ""] },
-            { "q": "3 peg k baad dost, bhai mera breakup hogya kya karu", "a": ["muth maar","4th peg maar","ro le jitna rona hai","main yahan hoon","explore kar","glow up mode on","breakup celebration","tinder pe bio update kar"]},
+            { "q": "3 peg k baad dost, bhai mera breakup hogya kya karu", "a": ["Bhai 3 peg ke baad bhi tu strong hai, ab 4th peg maar aur bol next level loading!", "Arre bhai, ro le jitna rona hai, main yahan hoon, kal subah naya plan banayenge", "Seedha bol, Jo chali gayi wo teri loss nahi, uski loss hai ab glow up mode on!", "3 peg ke baad bhi mat rone, phone utha aur usko last message maar Thank you for the lesson phir block!", "Bhai party continue, aaj breakup celebrate karte hain – freedom shots maar!", "Abhi so ja, subah uth ke gym ja, yeh dard 21 din mein kam ho jayega.", "Breakup ho gaya? Congrats bro, ab tinder pe bio update kar – 'Survived round 1'", "Bhai tension mat le, main hoon na – kal se hum dono milkar teri best version banayenge"] },
             { "q": "ladkia sbse pehli cheez kya notice krti ladko mein", "a": ["confidence", "Bodylanguage", "Dressing sense", "Height","Personality", "Hairstyle", "Sense of Humour", "Scent"] },
             { "q": "Paisa kamane ka sabse easy tarika kya hai?", "a": ["OnlyFans", "Sugar Mommy banana", "Content Creation", "Freelancing", "Selling Online Coaches", "Dropshipping", "Deliver boy", "Black mail"] },
             { "q": "Job interview mein sabse pehle kya dekhte hai?", "a": ["Communication Skills", "Knowledge", "Neat & Clean", "Positive Attitude", "Confidence", "Body Language", "Showing Genuine Interest", "Eye Contact"] },
             { "q": "Nobel Prize award categories", "a": ["Physics", "Chemistry", "Medicine", "Peace", "Literature", "Economics", "", ""] },
-            { "q": "Prominent actors in Bollywood", "a": ["ShahRukh", "Aamir", "Salman", "Akshay", "Ranbir", "Hrithik", "Ajay", "Saif"] },
+            { "q": "Prominent actors in Bollywood", "a": ["Shah Rukh", "Aamir", "Salman", "Akshay", "Ranbir", "Hrithik", "Ajay", "Saif"] },
             { "q": "Global fiat currencies", "a": ["Dollar", "Euro", "Yen", "Pound", "Rupee", "Yuan", "Won", "Baht"] },
             { "q": "Mainstream programming languages", "a": ["Python", "JavaScript", "Java", "C++", "Go", "Rust", "Swift", "Ruby"] },
             { "q": "Duniya ke sabse famous scientists kaunsi hain?", "a": ["Albert Einstein", "Isaac Newton", "Marie Curie", "Nikola Tesla", "Charles Darwin", "Stephen Hawking", "Galileo Galilei", "C.V. Raman"] },
@@ -299,20 +299,11 @@
             { "q": "Leadership qualities mein sabse zaroori kya hai?", "a": ["Vision", "Decision-making", "Empathy", "Integrity", "Confidence", "Delegation", "Motivation", "Accountability"] },
             { "q": "Networking event mein sabse pehle kya karna chahiye?", "a": ["Introduce yourself", "Smile", "Listen actively", "Ask questions", "Exchange contacts", "Show interest", "Be polite", "Follow up later"] },
             { "q": "Stressful situation mein sabse pehle kya dikhana chahiye?", "a": ["Calmness", "Patience", "Problem-solving", "Positive attitude", "Resilience", "Focus", "Adaptability", "Confidence"] },
-            { "q": "Recognized Olympic sports", "a": ["Football", "Basketball", "Tennis", "Swimming", "Boxing", "Hockey", "Cycling", "Wrestling"] },
-            { "q": "Commonly consumed fruits", "a": ["Apple", "Banana", "Orange", "Mango", "Grapes", "Pineapple", "Strawberry", "Watermelon"] },
-            { "q": "Widely recognized video games", "a": ["Minecraft", "Fortnite", "PUBG", "Call of Duty", "Among Us", "Valorant", "FIFA", "GTA"] },
-            { "q": "Major Indian metropolitan areas", "a": ["Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Jaipur"] },
-            { "q": "Exam ke ek din pehle kya karna chahiye?", "a": ["sojao", "last minute revision kar","Netflix on karlo","jo yaad hai wo likhlo","Bhagwan bharose","Jo hoga dekha jayega","chit bana lo","Confidence ke saath jao,paper bhi tujhe respect karega"] },
-            { "q": "Salary aane ke baad sabse pehle kya karna chahiye?", "a": ["biryani order kar","EMI pehle, baaki sab baad mein","Netflix renew kar","Story daal-Rich vibes only", "Maa ko paise de", "Randi chod le", "Shopping mall jao","Savings account khol"] },
-            { "q": "Crush ne reply nahi kiya toh kya karna chahiye?", "a": ["tension nhi leni","Message her friend", "meme bhej","Move on", "Game khel", "Patience rakho","Take a chill pill","kal good morning bhej"] },
-            { "q": "Weekend pe sabse pehle kya karna chahiye?", "a": ["so jao","Binge watch a Series","GYM","Party karo","chill kar","ghumne jao","Friends se mil","Maa baap ke saath time spend kar"] },
-            { "q": "Identify the continents of Earth.", "a": ["Asia", "Africa", "North America", "South America", "Antarctica", "Europe", "Australia", ""] },
-            { "q": "Identify the oceans of Earth.", "a": ["Pacific", "Atlantic", "Indian", "Arctic", "Southern", "", "", ""] },
-            { "q": "Identify sovereign states located in Europe.", "a": ["France", "Germany", "Italy", "Spain", "UK", "Poland", "Netherlands", "Belgium"] },
-            { "q": "Identify states within the Republic of India.", "a": ["Maharashtra", "Uttar Pradesh", "Karnataka", "Tamil Nadu", "West Bengal", "Gujarat", "Rajasthan", "Madhya Pradesh"] },
-            { "q": "Identify the largest sovereign states by land area.", "a": ["Russia", "Canada", "USA", "China", "Brazil", "Australia", "India", "Argentina"] },
-            { "q": "Boss ne extra kaam de diya toh kya karna chahiye?", "a": ["Say Fuck off","No tension", "Overtime", "LinkedIn khol", "Insta pe story daal-Hardworking employee vibes","Coffee piyo","Promotion hoga", "Boss ko bol–'Sir, main AI hoon kya?"] }
+            { "q": "Exam ke ek din pehle kya karna chahiye?", "a": ["Bhai syllabus dekh ke bas ro lo aur so ja", "Arre last minute revision kar, par Netflix bhi on rakho", "Seedha bol – jo yaad hai wahi likhna hai, baaki Bhagwan bharose", "Kal paper hai? Party kar, tension ka paper kabhi aata hai kya?", "Notes dekh ke bas apne handwriting pe fida ho ja", "Exam ke pehle bas ek mantra – 'Jo hoga dekha jayega'", "Bhai cheat sheet banane ka time abhi bhi hai", "Confidence ke saath ja, paper bhi tujhe respect karega"] },
+            { "q": "Salary aane ke baad sabse pehle kya karna chahiye?", "a": ["Bhai Swiggy khol aur biryani order kar", "Seedha bol – EMI pehle, baaki sab baad mein", "Netflix renew kar, warna weekend boring ho jayega", "Salary aayi? Insta story daal – 'Rich vibes only'", "Maa ko paise de, phir apne liye sneakers le", "Bhai ek peg maar aur bol – 'Hard work pays off'", "Seedha shopping mall ja aur khudko reward kar", "Savings account khol ke bas ek photo daal – 'Adulting 101'"] },
+            { "q": "Crush ne reply nahi kiya toh kya karna chahiye?", "a": ["Bhai tension mat le, uske DP pe bas like maar", "Seedha bol – 'Seen zone is also a zone'", "Arre bhai, ek aur meme bhej, reply guaranteed", "Reply nahi kiya? Ab status daal – 'Moving on…'", "Phone side mein rakh aur PUBG khol", "Bhai patience rakho, uska recharge khatam hoga", "Seedha bol – 'Tu reply kare ya na kare, main mast hoon'", "Kal ek aur good morning bhej, consistency is key"] },
+            { "q": "Weekend pe sabse pehle kya karna chahiye?", "a": ["Bhai alarm tod aur so ja", "Netflix khol aur series binge kar", "Arre gym ja, phir guilt-free pizza kha", "Weekend hai? Party kar, Monday ka tension kal sochenge", "Seedha bol – 'Laundry day hai'", "Bhai terrace pe ja aur chill kar", "Weekend pe sabse pehle – nap le", "Friends ko call kar aur plan banade"] },
+            { "q": "Boss ne extra kaam de diya toh kya karna chahiye?", "a": ["Bhai smile kar aur bol – 'Yes sir, no tension'", "Seedha bol – 'Overtime ka paisa bhi milega na?'", "Arre bhai, kaam karte karte LinkedIn khol", "Boss ne kaam diya? Insta pe story daal – 'Hardworking employee vibes'", "Seedha bol – 'Coffee ke bina kaam nahi hoga'", "Bhai kaam kar aur secretly job portal khol", "Extra kaam? Matlab promotion loading!", "Boss ko bol – 'Sir, main AI hoon kya?'"] }
         ];
         let r1Question, r1Answers;
         let r1Revealed = {};
@@ -321,17 +312,12 @@
         let r1PlayerTurns = [0, 0, 0]; 
 
         const r2Questions = [
-            { "q": "Identify planets comprising the solar system.", "a": ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"] },
-            { "q": "Identify the first 8 elements in the periodic table.", "a": ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen"] },
-            { "q": "Identify the colors present in a rainbow.", "a": ["Red", "Orange", "Yellow", "Green", "Blue", "Indigo", "Violet", ""] },
-            { "q": "Identify months of the Gregorian calendar.", "a": ["January", "February", "March", "April", "May", "June", "July", "August"] },
-            { "q": "Identify the days of the week.", "a": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", ""] },
-            { "q": "3 peg k baad dost, bhai mera breakup hogya kya karu", "a": ["muth maar","4th peg maar","ro le jitna rona hai","main yahan hoon","explore kar","glow up mode on","breakup celebration","tinder pe bio update kar"]},
-            { "q": "ladkia sbse pehli cheez kya notice krti ladko mein", "a": ["confidence", "Bodylanguage", "Dressing sense", "Height","Personality", "Hairstyle", "Sense of Humour", "Scent"] },
-            { "q": "Paisa kamane ka sabse easy tarika kya hai?", "a": ["OnlyFans", "Sugar Mommy banana", "Content Creation", "Freelancing", "Selling Online Coaches", "Dropshipping", "Deliver boy", "Black mail"] },
-            { "q": "Job interview mein sabse pehle kya dekhte hai?", "a": ["Communication Skills", "Knowledge", "Neat & Clean", "Positive Attitude", "Confidence", "Body Language", "Showing Genuine Interest", "Eye Contact"] },
+            { "q": "Recognized Olympic sports", "a": ["Football", "Basketball", "Tennis", "Swimming", "Boxing", "Hockey", "Cycling", "Wrestling"] },
+            { "q": "Commonly consumed fruits", "a": ["Apple", "Banana", "Orange", "Mango", "Grapes", "Pineapple", "Strawberry", "Watermelon"] },
+            { "q": "Widely recognized video games", "a": ["Minecraft", "Fortnite", "PUBG", "Call of Duty", "Among Us", "Valorant", "FIFA", "GTA"] },
+            { "q": "Major Indian metropolitan areas", "a": ["Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Jaipur"] },
             { "q": "Nobel Prize award categories", "a": ["Physics", "Chemistry", "Medicine", "Peace", "Literature", "Economics", "", ""] },
-            { "q": "Prominent actors in Bollywood", "a": ["ShahRukh", "Aamir", "Salman", "Akshay", "Ranbir", "Hrithik", "Ajay", "Saif"] },
+            { "q": "Prominent actors in Bollywood", "a": ["Shah Rukh", "Aamir", "Salman", "Akshay", "Ranbir", "Hrithik", "Ajay", "Saif"] },
             { "q": "Global fiat currencies", "a": ["Dollar", "Euro", "Yen", "Pound", "Rupee", "Yuan", "Won", "Baht"] },
             { "q": "Mainstream programming languages", "a": ["Python", "JavaScript", "Java", "C++", "Go", "Rust", "Swift", "Ruby"] },
             { "q": "Duniya ke sabse famous scientists kaunsi hain?", "a": ["Albert Einstein", "Isaac Newton", "Marie Curie", "Nikola Tesla", "Charles Darwin", "Stephen Hawking", "Galileo Galilei", "C.V. Raman"] },
@@ -341,20 +327,11 @@
             { "q": "Leadership qualities mein sabse zaroori kya hai?", "a": ["Vision", "Decision-making", "Empathy", "Integrity", "Confidence", "Delegation", "Motivation", "Accountability"] },
             { "q": "Networking event mein sabse pehle kya karna chahiye?", "a": ["Introduce yourself", "Smile", "Listen actively", "Ask questions", "Exchange contacts", "Show interest", "Be polite", "Follow up later"] },
             { "q": "Stressful situation mein sabse pehle kya dikhana chahiye?", "a": ["Calmness", "Patience", "Problem-solving", "Positive attitude", "Resilience", "Focus", "Adaptability", "Confidence"] },
-            { "q": "Recognized Olympic sports", "a": ["Football", "Basketball", "Tennis", "Swimming", "Boxing", "Hockey", "Cycling", "Wrestling"] },
-            { "q": "Commonly consumed fruits", "a": ["Apple", "Banana", "Orange", "Mango", "Grapes", "Pineapple", "Strawberry", "Watermelon"] },
-            { "q": "Widely recognized video games", "a": ["Minecraft", "Fortnite", "PUBG", "Call of Duty", "Among Us", "Valorant", "FIFA", "GTA"] },
-            { "q": "Major Indian metropolitan areas", "a": ["Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Jaipur"] },
-            { "q": "Exam ke ek din pehle kya karna chahiye?", "a": ["sojao", "last minute revision kar","Netflix on karlo","jo yaad hai wo likhlo","Bhagwan bharose","Jo hoga dekha jayega","chit bana lo","Confidence ke saath jao,paper bhi tujhe respect karega"] },
-            { "q": "Salary aane ke baad sabse pehle kya karna chahiye?", "a": ["biryani order kar","EMI pehle, baaki sab baad mein","Netflix renew kar","Story daal-Rich vibes only", "Maa ko paise de", "Randi chod le", "Shopping mall jao","Savings account khol"] },
-            { "q": "Crush ne reply nahi kiya toh kya karna chahiye?", "a": ["tension nhi leni","Message her friend", "meme bhej","Move on", "Game khel", "Patience rakho","Take a chill pill","kal good morning bhej"] },
-            { "q": "Weekend pe sabse pehle kya karna chahiye?", "a": ["so jao","Binge watch a Series","GYM","Party karo","chill kar","ghumne jao","Friends se mil","Maa baap ke saath time spend kar"] },
-            { "q": "Identify the continents of Earth.", "a": ["Asia", "Africa", "North America", "South America", "Antarctica", "Europe", "Australia", ""] },
-            { "q": "Identify the oceans of Earth.", "a": ["Pacific", "Atlantic", "Indian", "Arctic", "Southern", "", "", ""] },
-            { "q": "Identify sovereign states located in Europe.", "a": ["France", "Germany", "Italy", "Spain", "UK", "Poland", "Netherlands", "Belgium"] },
-            { "q": "Identify states within the Republic of India.", "a": ["Maharashtra", "Uttar Pradesh", "Karnataka", "Tamil Nadu", "West Bengal", "Gujarat", "Rajasthan", "Madhya Pradesh"] },
-            { "q": "Identify the largest sovereign states by land area.", "a": ["Russia", "Canada", "USA", "China", "Brazil", "Australia", "India", "Argentina"] },
-            { "q": "Boss ne extra kaam de diya toh kya karna chahiye?", "a": ["Say Fuck off","No tension", "Overtime", "LinkedIn khol", "Insta pe story daal-Hardworking employee vibes","Coffee piyo","Promotion hoga", "Boss ko bol–'Sir, main AI hoon kya?"] }
+            { "q": "Exam ke ek din pehle kya karna chahiye?", "a": ["Bhai syllabus dekh ke bas ro lo aur so ja", "Arre last minute revision kar, par Netflix bhi on rakho", "Seedha bol – jo yaad hai wahi likhna hai, baaki Bhagwan bharose", "Kal paper hai? Party kar, tension ka paper kabhi aata hai kya?", "Notes dekh ke bas apne handwriting pe fida ho ja", "Exam ke pehle bas ek mantra – 'Jo hoga dekha jayega'", "Bhai cheat sheet banane ka time abhi bhi hai", "Confidence ke saath ja, paper bhi tujhe respect karega"] },
+            { "q": "Salary aane ke baad sabse pehle kya karna chahiye?", "a": ["Bhai Swiggy khol aur biryani order kar", "Seedha bol – EMI pehle, baaki sab baad mein", "Netflix renew kar, warna weekend boring ho jayega", "Salary aayi? Insta story daal – 'Rich vibes only'", "Maa ko paise de, phir apne liye sneakers le", "Bhai ek peg maar aur bol – 'Hard work pays off'", "Seedha shopping mall ja aur khudko reward kar", "Savings account khol ke bas ek photo daal – 'Adulting 101'"] },
+            { "q": "Crush ne reply nahi kiya toh kya karna chahiye?", "a": ["Bhai tension mat le, uske DP pe bas like maar", "Seedha bol – 'Seen zone is also a zone'", "Arre bhai, ek aur meme bhej, reply guaranteed", "Reply nahi kiya? Ab status daal – 'Moving on…'", "Phone side mein rakh aur PUBG khol", "Bhai patience rakho, uska recharge khatam hoga", "Seedha bol – 'Tu reply kare ya na kare, main mast hoon'", "Kal ek aur good morning bhej, consistency is key"] },
+            { "q": "Weekend pe sabse pehle kya karna chahiye?", "a": ["Bhai alarm tod aur so ja", "Netflix khol aur series binge kar", "Arre gym ja, phir guilt-free pizza kha", "Weekend hai? Party kar, Monday ka tension kal sochenge", "Seedha bol – 'Laundry day hai'", "Bhai terrace pe ja aur chill kar", "Weekend pe sabse pehle – nap le", "Friends ko call kar aur plan banade"] },
+            { "q": "Boss ne extra kaam de diya toh kya karna chahiye?", "a": ["Bhai smile kar aur bol – 'Yes sir, no tension'", "Seedha bol – 'Overtime ka paisa bhi milega na?'", "Arre bhai, kaam karte karte LinkedIn khol", "Boss ne kaam diya? Insta pe story daal – 'Hardworking employee vibes'", "Seedha bol – 'Coffee ke bina kaam nahi hoga'", "Bhai kaam kar aur secretly job portal khol", "Extra kaam? Matlab promotion loading!", "Boss ko bol – 'Sir, main AI hoon kya?'"] }
         ];
         let r2CurrentPlayer = 0;
         let r2CurrentQuestion = null;
@@ -364,19 +341,11 @@
         let r2AvailableOptions = [];
 
         const r3Questions = [
-            { "q": "Identify planets comprising the solar system.", "a": ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"] },
-            { "q": "Identify the first 8 elements in the periodic table.", "a": ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen"] },
-            { "q": "Identify the colors present in a rainbow.", "a": ["Red", "Orange", "Yellow", "Green", "Blue", "Indigo", "Violet", ""] },
-            { "q": "Identify months of the Gregorian calendar.", "a": ["January", "February", "March", "April", "May", "June", "July", "August"] },
-            { "q": "Identify the days of the week.", "a": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", ""] },
-            { "q": "3 peg k baad dost, bhai mera breakup hogya kya karu", "a": ["muth maar","4th peg maar","ro le jitna rona hai","main yahan hoon","explore kar","glow up mode on","breakup celebration","tinder pe bio update kar"]},
-            { "q": "ladkia sbse pehli cheez kya notice krti ladko mein", "a": ["confidence", "Bodylanguage", "Dressing sense", "Height","Personality", "Hairstyle", "Sense of Humour", "Scent"] },
-            { "q": "Paisa kamane ka sabse easy tarika kya hai?", "a": ["OnlyFans", "Sugar Mommy banana", "Content Creation", "Freelancing", "Selling Online Coaches", "Dropshipping", "Deliver boy", "Black mail"] },
-            { "q": "Job interview mein sabse pehle kya dekhte hai?", "a": ["Communication Skills", "Knowledge", "Neat & Clean", "Positive Attitude", "Confidence", "Body Language", "Showing Genuine Interest", "Eye Contact"] },
-            { "q": "Nobel Prize award categories", "a": ["Physics", "Chemistry", "Medicine", "Peace", "Literature", "Economics", "", ""] },
-            { "q": "Prominent actors in Bollywood", "a": ["ShahRukh", "Aamir", "Salman", "Akshay", "Ranbir", "Hrithik", "Ajay", "Saif"] },
-            { "q": "Global fiat currencies", "a": ["Dollar", "Euro", "Yen", "Pound", "Rupee", "Yuan", "Won", "Baht"] },
-            { "q": "Mainstream programming languages", "a": ["Python", "JavaScript", "Java", "C++", "Go", "Rust", "Swift", "Ruby"] },
+            { "q": "Identify the continents of Earth.", "a": ["Asia", "Africa", "North America", "South America", "Antarctica", "Europe", "Australia", ""] },
+            { "q": "Identify the oceans of Earth.", "a": ["Pacific", "Atlantic", "Indian", "Arctic", "Southern", "", "", ""] },
+            { "q": "Identify sovereign states located in Europe.", "a": ["France", "Germany", "Italy", "Spain", "UK", "Poland", "Netherlands", "Belgium"] },
+            { "q": "Identify states within the Republic of India.", "a": ["Maharashtra", "Uttar Pradesh", "Karnataka", "Tamil Nadu", "West Bengal", "Gujarat", "Rajasthan", "Madhya Pradesh"] },
+            { "q": "Identify the largest sovereign states by land area.", "a": ["Russia", "Canada", "USA", "China", "Brazil", "Australia", "India", "Argentina"] },
             { "q": "Duniya ke sabse famous scientists kaunsi hain?", "a": ["Albert Einstein", "Isaac Newton", "Marie Curie", "Nikola Tesla", "Charles Darwin", "Stephen Hawking", "Galileo Galilei", "C.V. Raman"] },
             { "q": "Cricket ke sabse important trophies kaunsi hain?", "a": ["ICC World Cup", "T20 World Cup", "IPL Trophy", "Ashes", "Border-Gavaskar Trophy", "Asia Cup", "Champions Trophy", "Ranji Trophy"] },
             { "q": "Teamwork mein sabse important kya hota hai?", "a": ["Trust", "Communication", "Respect", "Collaboration", "Adaptability", "Shared goals", "Conflict resolution", "Support"] },
@@ -384,30 +353,23 @@
             { "q": "Leadership qualities mein sabse zaroori kya hai?", "a": ["Vision", "Decision-making", "Empathy", "Integrity", "Confidence", "Delegation", "Motivation", "Accountability"] },
             { "q": "Networking event mein sabse pehle kya karna chahiye?", "a": ["Introduce yourself", "Smile", "Listen actively", "Ask questions", "Exchange contacts", "Show interest", "Be polite", "Follow up later"] },
             { "q": "Stressful situation mein sabse pehle kya dikhana chahiye?", "a": ["Calmness", "Patience", "Problem-solving", "Positive attitude", "Resilience", "Focus", "Adaptability", "Confidence"] },
-            { "q": "Recognized Olympic sports", "a": ["Football", "Basketball", "Tennis", "Swimming", "Boxing", "Hockey", "Cycling", "Wrestling"] },
-            { "q": "Commonly consumed fruits", "a": ["Apple", "Banana", "Orange", "Mango", "Grapes", "Pineapple", "Strawberry", "Watermelon"] },
-            { "q": "Widely recognized video games", "a": ["Minecraft", "Fortnite", "PUBG", "Call of Duty", "Among Us", "Valorant", "FIFA", "GTA"] },
-            { "q": "Major Indian metropolitan areas", "a": ["Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Jaipur"] },
-            { "q": "Exam ke ek din pehle kya karna chahiye?", "a": ["sojao", "last minute revision kar","Netflix on karlo","jo yaad hai wo likhlo","Bhagwan bharose","Jo hoga dekha jayega","chit bana lo","Confidence ke saath jao,paper bhi tujhe respect karega"] },
-            { "q": "Salary aane ke baad sabse pehle kya karna chahiye?", "a": ["biryani order kar","EMI pehle, baaki sab baad mein","Netflix renew kar","Story daal-Rich vibes only", "Maa ko paise de", "Randi chod le", "Shopping mall jao","Savings account khol"] },
-            { "q": "Crush ne reply nahi kiya toh kya karna chahiye?", "a": ["tension nhi leni","Message her friend", "meme bhej","Move on", "Game khel", "Patience rakho","Take a chill pill","kal good morning bhej"] },
-            { "q": "Weekend pe sabse pehle kya karna chahiye?", "a": ["so jao","Binge watch a Series","GYM","Party karo","chill kar","ghumne jao","Friends se mil","Maa baap ke saath time spend kar"] },
-            { "q": "Identify the continents of Earth.", "a": ["Asia", "Africa", "North America", "South America", "Antarctica", "Europe", "Australia", ""] },
-            { "q": "Identify the oceans of Earth.", "a": ["Pacific", "Atlantic", "Indian", "Arctic", "Southern", "", "", ""] },
-            { "q": "Identify sovereign states located in Europe.", "a": ["France", "Germany", "Italy", "Spain", "UK", "Poland", "Netherlands", "Belgium"] },
-            { "q": "Identify states within the Republic of India.", "a": ["Maharashtra", "Uttar Pradesh", "Karnataka", "Tamil Nadu", "West Bengal", "Gujarat", "Rajasthan", "Madhya Pradesh"] },
-            { "q": "Identify the largest sovereign states by land area.", "a": ["Russia", "Canada", "USA", "China", "Brazil", "Australia", "India", "Argentina"] },
-            { "q": "Boss ne extra kaam de diya toh kya karna chahiye?", "a": ["Say Fuck off","No tension", "Overtime", "LinkedIn khol", "Insta pe story daal-Hardworking employee vibes","Coffee piyo","Promotion hoga", "Boss ko bol–'Sir, main AI hoon kya?"] }
+            { "q": "Exam ke ek din pehle kya karna chahiye?", "a": ["Bhai syllabus dekh ke bas ro lo aur so ja", "Arre last minute revision kar, par Netflix bhi on rakho", "Seedha bol – jo yaad hai wahi likhna hai, baaki Bhagwan bharose", "Kal paper hai? Party kar, tension ka paper kabhi aata hai kya?", "Notes dekh ke bas apne handwriting pe fida ho ja", "Exam ke pehle bas ek mantra – 'Jo hoga dekha jayega'", "Bhai cheat sheet banane ka time abhi bhi hai", "Confidence ke saath ja, paper bhi tujhe respect karega"] },
+            { "q": "Salary aane ke baad sabse pehle kya karna chahiye?", "a": ["Bhai Swiggy khol aur biryani order kar", "Seedha bol – EMI pehle, baaki sab baad mein", "Netflix renew kar, warna weekend boring ho jayega", "Salary aayi? Insta story daal – 'Rich vibes only'", "Maa ko paise de, phir apne liye sneakers le", "Bhai ek peg maar aur बोल – 'Hard work pays off'", "Seedha shopping mall ja aur khudko reward kar", "Savings account khol ke bas ek photo daal – 'Adulting 101'"] },
+            { "q": "Crush ne reply nahi kiya toh kya karna chahiye?", "a": ["Bhai tension mat le, uske DP pe bas like maar", "Seedha bol – 'Seen zone is also a zone'", "Arre bhai, ek aur meme bhej, reply guaranteed", "Reply nahi kiya? Ab status daal – 'Moving on…'", "Phone side mein rakh aur PUBG khol", "Bhai patience rakho, uska recharge khatam hoga", "Seedha bol – 'Tu reply kare ya na kare, main mast hoon'", "Kal ek aur good morning bhej, consistency is key"] },
+            { "q": "Weekend pe sabse pehle kya karna chahiye?", "a": ["Bhai alarm tod aur so ja", "Netflix khol aur series binge kar", "Arre gym ja, phir guilt-free pizza kha", "Weekend hai? Party kar, Monday ka tension kal sochenge", "Seedha bol – 'Laundry day hai'", "Bhai terrace pe ja aur chill kar", "Weekend pe sabse pehle – nap le", "Friends ko call kar aur plan banade"] },
+            { "q": "Boss ne extra kaam de diya toh kya karna chahiye?", "a": ["Bhai smile kar aur bol – 'Yes sir, no tension'", "Seedha bol – 'Overtime ka paisa bhi milega na?'", "Arre bhai, kaam karte karte LinkedIn khol", "Boss ne kaam diya? Insta pe story daal – 'Hardworking employee vibes'", "Seedha bol – 'Coffee ke bina kaam nahi hoga'", "Bhai kaam kar aur secretly job portal khol", "Extra kaam? Matlab promotion loading!", "Boss ko bol – 'Sir, main AI hoon kya?'"] }
         ];
         let r3Question, r3Answers;
         let r3Revealed = {};
         let r3CurrentPlayer = 0;
         let r3BonusGiven = false;
 
+        let usedQuestions = new Set();
+
         function getCardClasses(teamClass) {
-            if (teamClass === 'violet') return 'border-violet-800 bg-violet-900/20 text-violet-300 shadow-sm';
-            if (teamClass === 'amber') return 'border-amber-800 bg-amber-900/20 text-amber-300 shadow-sm';
+            if (teamClass === 'red') return 'border-red-800 bg-red-900/20 text-red-300 shadow-sm';
             if (teamClass === 'blue') return 'border-blue-800 bg-blue-900/20 text-blue-300 shadow-sm';
+            if (teamClass === 'green') return 'border-green-800 bg-green-900/20 text-green-300 shadow-sm';
             if (teamClass === 'grey') return 'border-zinc-800 bg-zinc-900/50 text-zinc-500 shadow-sm';
             return 'border-violet-900/30 bg-black/50 text-zinc-600 shadow-sm';
         }
@@ -607,9 +569,16 @@
         }
 
         function initRound1() {
-            const randomIdx = Math.floor(Math.random() * r1Questions.length);
-            r1Question = r1Questions[randomIdx].q;
-            r1Answers = r1Questions[randomIdx].a;
+            let availableQuestions = r1Questions.filter(q => !usedQuestions.has(q.q));
+            if (availableQuestions.length === 0) {
+                availableQuestions = r1Questions; // Fallback if all questions used
+                usedQuestions.clear();
+            }
+            const randomIdx = Math.floor(Math.random() * availableQuestions.length);
+            const selectedQuestion = availableQuestions[randomIdx];
+            r1Question = selectedQuestion.q;
+            r1Answers = selectedQuestion.a;
+            usedQuestions.add(r1Question);
             document.getElementById('r1-question').textContent = r1Question;
             r1Revealed = {};
             r1CurrentPlayer = 0;
@@ -625,7 +594,7 @@
             const turnsLeft = 3 - r1PlayerTurns[r1CurrentPlayer];
             indicator.innerHTML = `<span class="opacity-70">${player.color}</span> <span class="text-violet-50">${player.name}</span> <span class="ml-1 text-zinc-500 font-normal">· ${turnsLeft} remaining</span>`;
             
-            indicator.className = `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border bg-zinc-900 shadow-sm text-xs font-medium transition-all duration-300 ${player.cssClass === 'violet' ? 'border-violet-800' : player.cssClass === 'amber' ? 'border-amber-800' : 'border-blue-800'}`;
+            indicator.className = `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border bg-zinc-900 shadow-sm text-xs font-medium transition-all duration-300 ${player.cssClass === 'red' ? 'border-red-800' : player.cssClass === 'blue' ? 'border-blue-800' : 'border-green-800'}`;
 
             const answersHtml = r1Answers.map((ans, i) => {
                 let display = '<iconify-icon icon="solar:minus-linear" class="text-xl opacity-20" stroke-width="1.5"></iconify-icon>';
@@ -789,6 +758,13 @@
         }
 
         function initRound2() {
+            let availableQuestions = r2Questions.filter(q => !usedQuestions.has(q.q));
+            if (availableQuestions.length < 3) {
+                // If not enough unused questions, clear used questions and start fresh
+                usedQuestions.clear();
+                availableQuestions = r2Questions.slice();
+            }
+            
             const order = [...players].sort((a, b) => a.score - b.score);
             r2CurrentPlayer = players.indexOf(order[0]);
             
@@ -798,7 +774,7 @@
             document.getElementById('r2-question-choose').classList.add('active');
             document.getElementById('r2-game').classList.remove('active');
 
-            const shuffled = [...r2Questions].sort(() => Math.random() - 0.5);
+            const shuffled = availableQuestions.sort(() => Math.random() - 0.5);
             r2AvailableOptions = shuffled.slice(0, 3);
             
             const optionsHtml = r2AvailableOptions.map((q, i) => `
@@ -813,6 +789,7 @@
 
         function chooseR2Question(idx) {
             r2CurrentQuestion = r2AvailableOptions[idx];
+            usedQuestions.add(r2CurrentQuestion.q);
             r2Revealed = {};
             r2TimeLeft = 50;
 
@@ -849,14 +826,14 @@
             updateR2Board();
             showMessage('r2-message', 'Timer expired.', 'info');
 
+            const qIdx = r2Questions.indexOf(r2CurrentQuestion);
+            if (qIdx > -1) r2Questions.splice(qIdx, 1);
+
             const remaining = r2Questions.length;
             if (remaining > 1) {
                 const order = [...players].sort((a, b) => a.score - b.score);
                 const currentIdx = order.findIndex(p => p === players[r2CurrentPlayer]);
                 r2CurrentPlayer = players.indexOf(order[(currentIdx + 1) % 3]);
-
-                const qIdx = r2Questions.indexOf(r2CurrentQuestion);
-                if (qIdx > -1) r2Questions.splice(qIdx, 1);
 
                 setTimeout(() => { initRound2(); }, 2000);
             }
@@ -878,9 +855,16 @@
         }
 
         function initRound3() {
-            const randomIdx = Math.floor(Math.random() * r3Questions.length);
-            r3Question = r3Questions[randomIdx].q;
-            r3Answers = r3Questions[randomIdx].a;
+            let availableQuestions = r3Questions.filter(q => !usedQuestions.has(q.q));
+            if (availableQuestions.length === 0) {
+                availableQuestions = r3Questions; // Fallback if all questions used
+                usedQuestions.clear();
+            }
+            const randomIdx = Math.floor(Math.random() * availableQuestions.length);
+            const selectedQuestion = availableQuestions[randomIdx];
+            r3Question = selectedQuestion.q;
+            r3Answers = selectedQuestion.a;
+            usedQuestions.add(r3Question);
             document.getElementById('r3-question').textContent = r3Question;
             r3Revealed = {};
             r3CurrentPlayer = 0;
@@ -893,7 +877,7 @@
             const player = players[r3CurrentPlayer];
             const indicator = document.getElementById('r3-current-player');
             indicator.innerHTML = `<span class="opacity-70">${player.color}</span> <span class="text-violet-50">${player.name}</span> <span class="text-zinc-500 font-normal ml-1">· Active</span>`;
-            indicator.className = `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border bg-zinc-900 shadow-sm text-xs font-medium transition-all duration-300 ${player.cssClass === 'violet' ? 'border-violet-800' : player.cssClass === 'amber' ? 'border-amber-800' : 'border-blue-800'}`;
+            indicator.className = `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border bg-zinc-900 shadow-sm text-xs font-medium transition-all duration-300 ${player.cssClass === 'red' ? 'border-red-800' : player.cssClass === 'blue' ? 'border-blue-800' : 'border-green-800'}`;
 
             const answersHtml = r3Answers.map((ans, i) => {
                 let display = '<iconify-icon icon="solar:minus-linear" class="text-xl opacity-20" stroke-width="1.5"></iconify-icon>';
@@ -945,6 +929,7 @@
 
         function restartGame() {
             players.forEach(p => p.score = 0);
+            usedQuestions.clear();
             r1Revealed = {};
             r1PlayerTurns = [0, 0, 0];
             r2Revealed = {};
@@ -952,17 +937,18 @@
             r3BonusGiven = false;
             r2Questions.length = 0;
             r2Questions.push(
-                { "q": "Identify planets comprising the solar system.", "a": ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"] },
-                { "q": "Identify the first 8 elements in the periodic table.", "a": ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen"] },
-                { "q": "Identify the colors present in a rainbow.", "a": ["Red", "Orange", "Yellow", "Green", "Blue", "Indigo", "Violet", ""] },
-                { "q": "Identify months of the Gregorian calendar.", "a": ["January", "February", "March", "April", "May", "June", "July", "August"] },
-                { "q": "Identify the days of the week.", "a": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", ""] },
-                { "q": "3 peg k baad dost, bhai mera breakup hogya kya karu", "a": ["muth maar","4th peg maar","ro le jitna rona hai","main yahan hoon","explore kar","glow up mode on","breakup celebration","tinder pe bio update kar"]},
+                { "q": "3 peg k baad dost, bhai mera breakup hogya kya karu", "a": ["Bhai 3 peg ke baad bhi tu strong hai, ab 4th peg maar aur bol next level loading!", 
+                     "Arre bhai, ro le jitna rona hai, main yahan hoon, kal subah naya plan banayenge", "Seedha bol, Jo chali gayi wo teri loss nahi, uski loss hai ab glow up mode on!", 
+                     "3 peg ke baad bhi mat rone, phone utha aur usko last message maar Thank you for the lesson phir block!", "Bhai party continue, aaj breakup celebrate karte hain – freedom shots maar!", 
+                     "Abhi so ja, subah uth ke gym ja, yeh dard 21 din mein kam ho jayega.", "Breakup ho gaya? Congrats bro, ab tinder pe bio update kar – 'Survived round 1'", 
+                     "Bhai tension mat le, main hoon na – kal se hum dono milkar teri best version banayenge"] 
+                },
+
                 { "q": "ladkia sbse pehli cheez kya notice krti ladko mein", "a": ["confidence", "Bodylanguage", "Dressing sense", "Height","Personality", "Hairstyle", "Sense of Humour", "Scent"] },
                 { "q": "Paisa kamane ka sabse easy tarika kya hai?", "a": ["OnlyFans", "Sugar Mommy banana", "Content Creation", "Freelancing", "Selling Online Coaches", "Dropshipping", "Deliver boy", "Black mail"] },
                 { "q": "Job interview mein sabse pehle kya dekhte hai?", "a": ["Communication Skills", "Knowledge", "Neat & Clean", "Positive Attitude", "Confidence", "Body Language", "Showing Genuine Interest", "Eye Contact"] },
                 { "q": "Nobel Prize award categories", "a": ["Physics", "Chemistry", "Medicine", "Peace", "Literature", "Economics", "", ""] },
-                { "q": "Prominent actors in Bollywood", "a": ["ShahRukh", "Aamir", "Salman", "Akshay", "Ranbir", "Hrithik", "Ajay", "Saif"] },
+                { "q": "Prominent actors in Bollywood", "a": ["Shah Rukh", "Aamir", "Salman", "Akshay", "Ranbir", "Hrithik", "Ajay", "Saif"] },
                 { "q": "Global fiat currencies", "a": ["Dollar", "Euro", "Yen", "Pound", "Rupee", "Yuan", "Won", "Baht"] },
                 { "q": "Mainstream programming languages", "a": ["Python", "JavaScript", "Java", "C++", "Go", "Rust", "Swift", "Ruby"] },
                 { "q": "Duniya ke sabse famous scientists kaunsi hain?", "a": ["Albert Einstein", "Isaac Newton", "Marie Curie", "Nikola Tesla", "Charles Darwin", "Stephen Hawking", "Galileo Galilei", "C.V. Raman"] },
@@ -972,20 +958,22 @@
                 { "q": "Leadership qualities mein sabse zaroori kya hai?", "a": ["Vision", "Decision-making", "Empathy", "Integrity", "Confidence", "Delegation", "Motivation", "Accountability"] },
                 { "q": "Networking event mein sabse pehle kya karna chahiye?", "a": ["Introduce yourself", "Smile", "Listen actively", "Ask questions", "Exchange contacts", "Show interest", "Be polite", "Follow up later"] },
                 { "q": "Stressful situation mein sabse pehle kya dikhana chahiye?", "a": ["Calmness", "Patience", "Problem-solving", "Positive attitude", "Resilience", "Focus", "Adaptability", "Confidence"] },
-                { "q": "Recognized Olympic sports", "a": ["Football", "Basketball", "Tennis", "Swimming", "Boxing", "Hockey", "Cycling", "Wrestling"] },
-                { "q": "Commonly consumed fruits", "a": ["Apple", "Banana", "Orange", "Mango", "Grapes", "Pineapple", "Strawberry", "Watermelon"] },
-                { "q": "Widely recognized video games", "a": ["Minecraft", "Fortnite", "PUBG", "Call of Duty", "Among Us", "Valorant", "FIFA", "GTA"] },
-                { "q": "Major Indian metropolitan areas", "a": ["Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Jaipur"] },
-                { "q": "Exam ke ek din pehle kya karna chahiye?", "a": ["sojao", "last minute revision kar","Netflix on karlo","jo yaad hai wo likhlo","Bhagwan bharose","Jo hoga dekha jayega","chit bana lo","Confidence ke saath jao,paper bhi tujhe respect karega"] },
-                { "q": "Salary aane ke baad sabse pehle kya karna chahiye?", "a": ["biryani order kar","EMI pehle, baaki sab baad mein","Netflix renew kar","Story daal-Rich vibes only", "Maa ko paise de", "Randi chod le", "Shopping mall jao","Savings account kho  l"] },
-                { "q": "Crush ne reply nahi kiya toh kya karna chahiye?", "a": ["tension nhi leni","Message her friend", "meme bhej","Move on", "Game khel", "Patience rakho","Take a chill pill","kal good morning bhej"] },
-                { "q": "Weekend pe sabse pehle kya karna chahiye?", "a": ["so jao","Binge watch a Series","GYM","Party karo","chill kar","ghumne jao","Friends se mil","Maa baap ke saath time spend kar"] },
-                { "q": "Identify the continents of Earth.", "a": ["Asia", "Africa", "North America", "South America", "Antarctica", "Europe", "Australia", ""] },
-                { "q": "Identify the oceans of Earth.", "a": ["Pacific", "Atlantic", "Indian", "Arctic", "Southern", "", "", ""] },
-                { "q": "Identify sovereign states located in Europe.", "a": ["France", "Germany", "Italy", "Spain", "UK", "Poland", "Netherlands", "Belgium"] },
-                { "q": "Identify states within the Republic of India.", "a": ["Maharashtra", "Uttar Pradesh", "Karnataka", "Tamil Nadu", "West Bengal", "Gujarat", "Rajasthan", "Madhya Pradesh"] },
-                { "q": "Identify the largest sovereign states by land area.", "a": ["Russia", "Canada", "USA", "China", "Brazil", "Australia", "India", "Argentina"] },
-                { "q": "Boss ne extra kaam de diya toh kya karna chahiye?", "a": ["Say Fuck off","No tension", "Overtime", "LinkedIn khol", "Insta pe story daal-Hardworking employee vibes","Coffee piyo","Promotion hoga", "Boss ko bol–'Sir, main AI hoon kya?"] }
+                { "q": "Exam ke ek din pehle kya karna chahiye?", "a": ["Bhai syllabus dekh ke bas ro lo aur so ja", "Arre last minute revision kar, par Netflix bhi on rakho", "Seedha bol – jo yaad hai wahi likhna hai, baaki Bhagwan bharose", 
+                    "Kal paper hai? Party kar, tension ka paper kabhi aata hai kya?", "Notes dekh ke bas apne handwriting pe fida ho ja", "Exam ke pehle bas ek mantra – 'Jo hoga dekha jayega'", "Bhai cheat sheet banane ka time abhi bhi hai", 
+                    "Confidence ke saath ja, paper bhi tujhe respect karega"] },
+
+                { "q": "Salary aane ke baad sabse pehle kya karna chahiye?", "a": ["Bhai Swiggy khol aur biryani order kar", "Seedha bol – EMI pehle, baaki sab baad mein", "Netflix renew kar, warna weekend boring ho jayega", 
+                    "Salary aayi? Insta story daal – 'Rich vibes only'", "Maa ko paise de, phir apne liye sneakers le", "Bhai ek peg maar aur bol – 'Hard work pays off'", "Seedha shopping mall ja aur khudko reward kar",
+                    "Savings account khol ke bas ek photo daal – 'Adulting 101'"] },
+                
+                { "q": "Crush ne reply nahi kiya toh kya karna chahiye?", "a": ["Bhai tension mat le, uske DP pe bas like maar", "Seedha bol – 'Seen zone is also a zone'", "Arre bhai, ek aur meme bhej, reply guaranteed", 
+                    "Reply nahi kiya? Ab status daal – 'Moving on…'", "Phone side mein rakh aur PUBG khol", "Bhai patience rakho, uska recharge khatam hoga", "Seedha bol – 'Tu reply kare ya na kare, main mast hoon'", "Kal ek aur good morning bhej, consistency is key"] },
+                
+                { "q": "Weekend pe sabse pehle kya karna chahiye?", "a": ["Bhai alarm tod aur so ja", "Netflix khol aur series binge kar", "Arre gym ja, phir guilt-free pizza kha", "Weekend hai? Party kar, Monday ka tension kal sochenge", 
+                    "Seedha bol – 'Laundry day hai'", "Bhai terrace pe ja aur chill kar", "Weekend pe sabse pehle – nap le", "Friends ko call kar aur plan banade"] },
+                
+                { "q": "Boss ne extra kaam de diya toh kya karna chahiye?", "a": ["Bhai smile kar aur bol – 'Yes sir, no tension'", "Seedha bol – 'Overtime ka paisa bhi milega na?'", "Arre bhai, kaam karte karte LinkedIn khol", "Boss ne kaam diya? Insta pe story daal – 'Hardworking employee vibes'", 
+                    "Seedha bol – 'Coffee ke bina kaam nahi hoga'", "Bhai kaam kar aur secretly job portal khol", "Extra kaam? Matlab promotion loading!", "Boss ko bol – 'Sir, main AI hoon kya?'"] }
             );
             
             const r1RandomIdx = Math.floor(Math.random() * r1Questions.length);
