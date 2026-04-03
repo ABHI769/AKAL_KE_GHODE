@@ -621,21 +621,41 @@
 
                 // R3 Parallel claim confirmed by server — apply to all players
                 socket.on('r3_claim_accepted', (data) => {
-                    // Server confirmed the claim — update ALL clients identically.
-                    // No special-casing for claimant vs others; everyone applies the same update.
-                    const { answer_idx, player_id, player_css_class, score_delta } = data;
-                    r3Revealed[answer_idx] = player_css_class;
-                    players[player_id].score += score_delta;
+                    // Server is the single source of truth.
+                    // Replace r3Revealed entirely with the server's authoritative board state,
+                    // then apply the score delta for this claim.
+                    const { answer_idx, player_id, player_css_class, score_delta, r3_revealed } = data;
+
+                    // Sync the full board from server so all clients always match exactly
+                    if (r3_revealed && typeof r3_revealed === 'object') {
+                        r3Revealed = {};
+                        Object.keys(r3_revealed).forEach(k => {
+                            r3Revealed[parseInt(k, 10)] = r3_revealed[k];
+                        });
+                    } else {
+                        // Fallback: patch just this answer
+                        r3Revealed[answer_idx] = player_css_class;
+                    }
+
+                    // Apply score for this claim
+                    if (players[player_id]) {
+                        players[player_id].score += score_delta;
+                    }
+
                     const allFound = Object.keys(r3Revealed).length === r3Answers.length;
                     if (allFound && !r3BonusGiven) {
-                        players[player_id].score += 50;
+                        if (players[player_id]) players[player_id].score += 50;
                         r3BonusGiven = true;
-                        showMessage('r3-message', `${players[player_id].name} cleared the board! +50 bonus!`, 'success');
+                        showMessage('r3-message', `${players[player_id] ? players[player_id].name : 'Someone'} cleared the board! +50 bonus!`, 'success');
                     } else {
-                        showMessage('r3-message', `${players[player_id].name} claimed: ${r3Answers[answer_idx]}`, 'success');
+                        const claimerName = players[player_id] ? players[player_id].name : 'A player';
+                        showMessage('r3-message', `${claimerName} claimed: ${r3Answers[answer_idx]}`, 'success');
                     }
-                    renderR3Board();
+
+                    const boardEl = document.getElementById('r3-answers');
+                    if (boardEl) renderR3Board();
                     updateScores('r3');
+
                     if (allFound) {
                         setTimeout(() => { showFinalScores(); }, 1500);
                     }
