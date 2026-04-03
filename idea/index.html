@@ -458,6 +458,53 @@
                         updateR1Board();
                         updateScores('r1');
                         showSection(gameState.currentSection);
+                    } else if (gameState.action === 'r1_update') {
+                        // Apply R1 game state updates
+                        r1Revealed = gameState.r1Revealed;
+                        gameState.players.forEach((p, i) => {
+                            if (players[i]) {
+                                players[i].name = p.name;
+                                players[i].score = p.score;
+                            }
+                        });
+                        r1CurrentPlayer = gameState.r1CurrentPlayer;
+                        r1PlayerTurns = gameState.r1PlayerTurns;
+                        r1TurnCount = gameState.r1TurnCount;
+                        
+                        updateR1Board();
+                        updateScores('r1');
+                        updateInputFieldStates();
+                    } else if (gameState.action === 'r2_update') {
+                        // Apply R2 game state updates
+                        r2Revealed = gameState.r2Revealed;
+                        gameState.players.forEach((p, i) => {
+                            if (players[i]) {
+                                players[i].name = p.name;
+                                players[i].score = p.score;
+                            }
+                        });
+                        r2CurrentPlayer = gameState.r2CurrentPlayer;
+                        r2StealPhase = gameState.r2StealPhase;
+                        r2StealQueue = gameState.r2StealQueue;
+                        
+                        updateR2Board();
+                        updateScores('r2');
+                        updateInputFieldStates();
+                    } else if (gameState.action === 'r3_update') {
+                        // Apply R3 game state updates
+                        r3Revealed = gameState.r3Revealed;
+                        gameState.players.forEach((p, i) => {
+                            if (players[i]) {
+                                players[i].name = p.name;
+                                players[i].score = p.score;
+                            }
+                        });
+                        r3CurrentPlayer = gameState.r3CurrentPlayer;
+                        r3BonusGiven = gameState.r3BonusGiven;
+                        
+                        updateR3Board();
+                        updateScores('r3');
+                        updateInputFieldStates();
                     }
                 });
             }
@@ -629,6 +676,11 @@
                     }
                 });
             }
+            
+            // Update input field states for remote play
+            if (gameMode === 'remote') {
+                updateInputFieldStates();
+            }
         }
 
         function initRound1() {
@@ -676,6 +728,11 @@
                 return `<div class="p-3 rounded-lg border flex items-center justify-center text-center transition-all duration-500 min-h-[3.5rem] text-sm ${cssClass}">${display}</div>`;
             }).join('');
             document.getElementById('r1-answers').innerHTML = answersHtml;
+            
+            // Update input field states when current player changes
+            if (gameMode === 'remote') {
+                updateInputFieldStates();
+            }
         }
 
         function getAnswerIndexByGuess(guess, answers, revealed) {
@@ -717,6 +774,22 @@
             const input = document.getElementById(`${round}-guess`);
             const guess = input.value.trim().toLowerCase();
             if (!guess) return;
+
+            // Check if it's the current player's turn in remote mode
+            if (gameMode === 'remote') {
+                if (round === 'r1' && r1CurrentPlayer !== localPlayerId) {
+                    showMessage(`${round}-message`, 'It\'s not your turn!', 'error');
+                    return;
+                }
+                if (round === 'r2' && r2CurrentPlayer !== localPlayerId) {
+                    showMessage(`${round}-message`, 'It\'s not your turn!', 'error');
+                    return;
+                }
+                if (round === 'r3' && r3CurrentPlayer !== localPlayerId) {
+                    showMessage(`${round}-message`, 'It\'s not your turn!', 'error');
+                    return;
+                }
+            }
 
             if (round === 'r1') {
                 const idx = getAnswerIndexByGuess(guess, r1Answers, r1Revealed);
@@ -765,6 +838,21 @@
                     r1CurrentPlayer = (r1CurrentPlayer + 1) % 3;
                     updateR1Board();
                 }
+
+                // Emit game state update for remote play
+                if (gameMode === 'remote' && socket) {
+                    socket.emit('update_game', {
+                        room_id: currentRoomCode,
+                        game_state: {
+                            action: 'r1_update',
+                            r1Revealed: r1Revealed,
+                            players: players.map(p => ({ name: p.name, score: p.score })),
+                            r1CurrentPlayer: r1CurrentPlayer,
+                            r1PlayerTurns: r1PlayerTurns,
+                            r1TurnCount: r1TurnCount
+                        }
+                    });
+                }
             }
             else if (round === 'r2') {
                 const answers = r2CurrentQuestion.a;
@@ -797,6 +885,21 @@
                 } else {
                     advanceR2StealOrEnd();
                 }
+
+                // Emit game state update for remote play
+                if (gameMode === 'remote' && socket) {
+                    socket.emit('update_game', {
+                        room_id: currentRoomCode,
+                        game_state: {
+                            action: 'r2_update',
+                            r2Revealed: r2Revealed,
+                            players: players.map(p => ({ name: p.name, score: p.score })),
+                            r2CurrentPlayer: r2CurrentPlayer,
+                            r2StealPhase: r2StealPhase,
+                            r2StealQueue: r2StealQueue
+                        }
+                    });
+                }
             }
             else if (round === 'r3') {
                 const idx = getAnswerIndexByGuess(guess, r3Answers, r3Revealed);
@@ -816,6 +919,20 @@
                 input.value = '';
                 updateR3Board();
                 updateScores('r3');
+
+                // Emit game state update for remote play
+                if (gameMode === 'remote' && socket) {
+                    socket.emit('update_game', {
+                        room_id: currentRoomCode,
+                        game_state: {
+                            action: 'r3_update',
+                            r3Revealed: r3Revealed,
+                            players: players.map(p => ({ name: p.name, score: p.score })),
+                            r3CurrentPlayer: r3CurrentPlayer,
+                            r3BonusGiven: r3BonusGiven
+                        }
+                    });
+                }
             }
         }
 
@@ -847,6 +964,48 @@
             if(scoreContainer) scoreContainer.innerHTML = html;
         }
 
+        function updateInputFieldStates() {
+            if (gameMode !== 'remote') return;
+            
+            // Round 1 input field
+            const r1Input = document.getElementById('r1-guess');
+            const r1Submit = document.querySelector('#round1 button[onclick*="submitGuess(\'r1\'")');
+            if (r1Input && r1Submit) {
+                const isCurrentPlayer = r1CurrentPlayer === localPlayerId;
+                r1Input.disabled = !isCurrentPlayer;
+                r1Submit.disabled = !isCurrentPlayer;
+                r1Input.placeholder = isCurrentPlayer ? "Enter answer..." : "Waiting for other player's turn...";
+                r1Input.classList.toggle('opacity-50', !isCurrentPlayer);
+                r1Input.classList.toggle('cursor-not-allowed', !isCurrentPlayer);
+            }
+            
+            // Round 2 input field
+            const r2Input = document.getElementById('r2-guess');
+            const r2Submit = document.querySelector('#round2 button[onclick*="submitGuess(\'r2\'")');
+            if (r2Input && r2Submit) {
+                const isCurrentPlayer = r2CurrentPlayer === localPlayerId;
+                const canSteal = r2StealPhase && r2StealQueue.includes(localPlayerId);
+                const enabled = isCurrentPlayer || canSteal;
+                r2Input.disabled = !enabled;
+                r2Submit.disabled = !enabled;
+                r2Input.placeholder = enabled ? "Enter answer..." : "Waiting for other player's turn...";
+                r2Input.classList.toggle('opacity-50', !enabled);
+                r2Input.classList.toggle('cursor-not-allowed', !enabled);
+            }
+            
+            // Round 3 input field
+            const r3Input = document.getElementById('r3-guess');
+            const r3Submit = document.querySelector('#round3 button[onclick*="submitGuess(\'r3\'")');
+            if (r3Input && r3Submit) {
+                const isCurrentPlayer = r3CurrentPlayer === localPlayerId;
+                r3Input.disabled = !isCurrentPlayer;
+                r3Submit.disabled = !isCurrentPlayer;
+                r3Input.placeholder = isCurrentPlayer ? "Enter answer..." : "Waiting for other player's turn...";
+                r3Input.classList.toggle('opacity-50', !isCurrentPlayer);
+                r3Input.classList.toggle('cursor-not-allowed', !isCurrentPlayer);
+            }
+        }
+
         function showSection(id) {
             document.querySelectorAll('.game-section').forEach(s => s.classList.remove('active'));
             document.getElementById('gameModeSelection').classList.remove('active');
@@ -861,6 +1020,12 @@
                     backBtn.classList.remove('hidden');
                 }
             }
+            
+            // Update input field states when switching sections
+            if (gameMode === 'remote') {
+                updateInputFieldStates();
+            }
+        }
         }
 
         function nextRound(num) {
@@ -921,6 +1086,11 @@
             
             startTimer();
             updateR2Board();
+            
+            // Update input field states for remote play
+            if (gameMode === 'remote') {
+                updateInputFieldStates();
+            }
         }
 
         function startTimer() {
@@ -972,6 +1142,11 @@
             r2CurrentPlayer = r2StealQueue[r2StealIndex];
             showMessage('r2-message', `${players[r2CurrentPlayer].name} now gets the steal attempt`, 'info');
             updateR2Board();
+            
+            // Update input field states for steal phase
+            if (gameMode === 'remote') {
+                updateInputFieldStates();
+            }
         }
 
         function endR2Turn() {
@@ -1021,6 +1196,11 @@
             r3BonusGiven = false;
             updateR3Board();
             updateScores('r3');
+            
+            // Update input field states for remote play
+            if (gameMode === 'remote') {
+                updateInputFieldStates();
+            }
         }
 
         function updateR3Board() {
@@ -1049,6 +1229,10 @@
                 setTimeout(() => { showFinalScores(); }, 1500);
             } else {
                 r3CurrentPlayer = (r3CurrentPlayer + 1) % 3;
+                // Update input field states when current player changes
+                if (gameMode === 'remote') {
+                    updateInputFieldStates();
+                }
             }
         }
 
