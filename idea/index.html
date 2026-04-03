@@ -445,19 +445,42 @@
                 });
                 
                 socket.on('game_updated', (gameState) => {
+                    console.log('game_updated event received:', gameState.action);
+                    
                     if (gameState.action === 'start_game' && !isHost) {
-                        players.forEach((p, i) => { if (gameState.players[i]) p.name = gameState.players[i].name; });
-                        r1Question = gameState.r1Question;
-                        r1Answers = gameState.r1Answers;
-                        r1Revealed = {};
-                        r1CurrentPlayer = 0;
-                        r1TurnCount = 0;
-                        r1PlayerTurns = [0, 0, 0];
+                        console.log('Non-host player received start_game event');
+                        console.log('Received question:', gameState.r1Question);
                         
-                        document.getElementById('r1-question').textContent = r1Question;
-                        updateR1Board();
-                        updateScores('r1');
+                        // Update player information
+                        players.forEach((p, i) => { if (gameState.players[i]) p.name = gameState.players[i].name; });
+                        
+                        // Set round 1 state first
+                        r1Question = gameState.r1Question || '';
+                        r1Answers = gameState.r1Answers || [];
+                        r1Revealed = gameState.r1Revealed || {};
+                        r1CurrentPlayer = gameState.r1CurrentPlayer || 0;
+                        r1TurnCount = gameState.r1TurnCount || 0;
+                        r1PlayerTurns = gameState.r1PlayerTurns || [0, 0, 0];
+                        
+                        console.log('Game state variables set, showing section...');
+                        
+                        // Show round 1 section to render DOM elements
                         showSection(gameState.currentSection);
+                        
+                        // Update UI after a small delay to ensure DOM is ready
+                        setTimeout(() => {
+                            const questionEl = document.getElementById('r1-question');
+                            if (questionEl) {
+                                questionEl.textContent = r1Question;
+                                console.log('Question updated in DOM');
+                            } else {
+                                console.error('r1-question element not found in DOM');
+                            }
+                            updateR1Board();
+                            updateScores('r1');
+                            updateInputFieldStates();
+                            console.log('Game state applied for non-host player');
+                        }, 100);
                     } else if (gameState.action === 'r1_update') {
                         // Apply R1 game state updates
                         r1Revealed = gameState.r1Revealed;
@@ -661,26 +684,42 @@
                 const name = document.getElementById(`player${i}`).value;
                 if (name.trim()) p.name = name;
             });
+            
+            console.log('Starting game, gameMode:', gameMode, 'isHost:', isHost);
+            
+            // Show section FIRST to ensure DOM is ready
             showSection('round1');
-            initRound1();
             
-            if (gameMode === 'remote' && isHost && socket) {
-                socket.emit('update_game', {
-                    room_id: currentRoomCode,
-                    game_state: { 
-                        action: 'start_game', 
-                        players: players, 
-                        currentSection: 'round1', 
-                        r1Question: r1Question, 
-                        r1Answers: r1Answers 
-                    }
-                });
-            }
-            
-            // Update input field states for remote play
-            if (gameMode === 'remote') {
-                updateInputFieldStates();
-            }
+            // Initialize round 1 AFTER section is visible
+            setTimeout(() => {
+                console.log('Initializing Round 1...');
+                initRound1();
+                console.log('Round 1 initialized with question:', r1Question);
+                
+                // Broadcast game state to remote players
+                if (gameMode === 'remote' && isHost && socket) {
+                    console.log('Broadcasting game state to remote players');
+                    socket.emit('update_game', {
+                        room_id: currentRoomCode,
+                        game_state: { 
+                            action: 'start_game', 
+                            players: players.map(p => ({ name: p.name, score: p.score })), 
+                            currentSection: 'round1', 
+                            r1Question: r1Question, 
+                            r1Answers: r1Answers,
+                            r1Revealed: r1Revealed,
+                            r1CurrentPlayer: r1CurrentPlayer,
+                            r1PlayerTurns: r1PlayerTurns,
+                            r1TurnCount: r1TurnCount
+                        }
+                    });
+                }
+                
+                // Update input field states for remote play
+                if (gameMode === 'remote') {
+                    updateInputFieldStates();
+                }
+            }, 100);
         }
 
         function initRound1() {
@@ -691,7 +730,16 @@
             r1Answers = selected.a;
             removeQuestionFromPool(selected, r2QuestionPool);
             removeQuestionFromPool(selected, r3QuestionPool);
-            document.getElementById('r1-question').textContent = r1Question;
+            
+            // Update DOM elements
+            const questionEl = document.getElementById('r1-question');
+            if (questionEl) {
+                questionEl.textContent = r1Question;
+                console.log('R1 Question set:', r1Question);
+            } else {
+                console.error('r1-question element not found');
+            }
+            
             r1Revealed = {};
             r1CurrentPlayer = 0;
             r1TurnCount = 0;
@@ -708,6 +756,12 @@
         function updateR1Board() {
             const player = players[r1CurrentPlayer];
             const indicator = document.getElementById('r1-current-player');
+            
+            if (!indicator) {
+                console.warn('r1-current-player element not found');
+                return;
+            }
+            
             const turnsLeft = 3 - r1PlayerTurns[r1CurrentPlayer];
             indicator.innerHTML = `<span class="opacity-70">${player.color}</span> <span class="text-violet-50">${player.name}</span> <span class="ml-1 text-zinc-500 font-normal">· ${turnsLeft} remaining</span>`;
             
@@ -727,7 +781,11 @@
 
                 return `<div class="p-3 rounded-lg border flex items-center justify-center text-center transition-all duration-500 min-h-[3.5rem] text-sm ${cssClass}">${display}</div>`;
             }).join('');
-            document.getElementById('r1-answers').innerHTML = answersHtml;
+            
+            const answersContainer = document.getElementById('r1-answers');
+            if (answersContainer) {
+                answersContainer.innerHTML = answersHtml;
+            }
             
             // Update input field states when current player changes
             if (gameMode === 'remote') {
@@ -1019,6 +1077,11 @@
                 } else {
                     backBtn.classList.remove('hidden');
                 }
+            }
+            
+            // Initialize player setup when switching to setup section
+            if (id === 'setup') {
+                initPlayerSetup();
             }
             
             // Update input field states when switching sections
