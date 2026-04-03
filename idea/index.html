@@ -1027,7 +1027,7 @@
             
             // Round 1 input field
             const r1Input = document.getElementById('r1-guess');
-            const r1Submit = document.querySelector('#round1 button[onclick*="submitGuess(\'r1\'")');
+            const r1Submit = document.querySelector('#round1 button[onclick*="submitGuess(\'r1\')"]');
             if (r1Input && r1Submit) {
                 const isCurrentPlayer = r1CurrentPlayer === localPlayerId;
                 r1Input.disabled = !isCurrentPlayer;
@@ -1039,7 +1039,7 @@
             
             // Round 2 input field
             const r2Input = document.getElementById('r2-guess');
-            const r2Submit = document.querySelector('#round2 button[onclick*="submitGuess(\'r2\'")');
+            const r2Submit = document.querySelector('#round2 button[onclick*="submitGuess(\'r2\')"]');
             if (r2Input && r2Submit) {
                 const isCurrentPlayer = r2CurrentPlayer === localPlayerId;
                 const canSteal = r2StealPhase && r2StealQueue.includes(localPlayerId);
@@ -1053,7 +1053,7 @@
             
             // Round 3 input field
             const r3Input = document.getElementById('r3-guess');
-            const r3Submit = document.querySelector('#round3 button[onclick*="submitGuess(\'r3\'")');
+            const r3Submit = document.querySelector('#round3 button[onclick*="submitGuess(\'r3\')"]');
             if (r3Input && r3Submit) {
                 const isCurrentPlayer = r3CurrentPlayer === localPlayerId;
                 r3Input.disabled = !isCurrentPlayer;
