@@ -1,4 +1,3 @@
-
 R1_QUESTIONS = [
     { "q": "Identify planets comprising the solar system.", "a": ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"] },
     { "q": "Identify the first 8 elements in the periodic table.", "a": ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen"] },
