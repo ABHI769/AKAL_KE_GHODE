@@ -367,11 +367,18 @@
             { "q": "Boss ne extra kaam de diya toh kya karna chahiye?", "a": ["Say Fuck off","No tension", "Overtime", "LinkedIn khol", "Insta pe story daal-Hardworking employee vibes","Coffee piyo","Promotion hoga", "Boss ko bol–'Sir, main AI hoon kya?"] }
         ];
         let r2CurrentPlayer = 0;
+        let r2PrimaryPlayer = 0;
         let r2CurrentQuestion = null;
         let r2Revealed = {};
         let r2Timer = null;
         let r2TimeLeft = 50;
         let r2AvailableOptions = [];
+
+        let r2MainOrder = [];
+        let r2RoundsDone = 0;
+        let r2StealPhase = false;
+        let r2StealQueue = [];
+        let r2StealIndex = 0;
 
         const r3Questions = [
             { "q": "Identify planets comprising the solar system.", "a": ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"] },
@@ -641,6 +648,11 @@
             updateScores('r1');
         }
 
+        function normalizeAnswerForDisplay(ans) {
+            const trimmed = (ans || '').toString().trim();
+            return trimmed === '' ? 'BLANK' : ans;
+        }
+
         function updateR1Board() {
             const player = players[r1CurrentPlayer];
             const indicator = document.getElementById('r1-current-player');
@@ -650,16 +662,55 @@
             indicator.className = `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border bg-zinc-900 shadow-sm text-xs font-medium transition-all duration-300 ${player.cssClass === 'red' ? 'border-red-800' : player.cssClass === 'blue' ? 'border-blue-800' : 'border-emerald-800'}`;
 
             const answersHtml = r1Answers.map((ans, i) => {
+                const answerText = normalizeAnswerForDisplay(ans);
                 let display = '<iconify-icon icon="solar:minus-linear" class="text-xl opacity-20" stroke-width="1.5"></iconify-icon>';
                 let cssClass = getCardClasses('hidden');
-                
+
                 if (i in r1Revealed) {
                     cssClass = getCardClasses(r1Revealed[i]);
-                    display = `<span class="tracking-tight">${ans}</span>`;
+                    display = `<span class="tracking-tight">${answerText}</span>`;
+                } else if (answerText === 'BLANK') {
+                    display = `<span class="tracking-tight text-zinc-400">BLANK</span>`;
                 }
+
                 return `<div class="p-3 rounded-lg border flex items-center justify-center text-center transition-all duration-500 min-h-[3.5rem] text-sm ${cssClass}">${display}</div>`;
             }).join('');
             document.getElementById('r1-answers').innerHTML = answersHtml;
+        }
+
+        function getAnswerIndexByGuess(guess, answers, revealed) {
+            const normalizedGuess = guess.trim().toLowerCase();
+            if (!normalizedGuess) return -1;
+
+            const exactIdx = answers.findIndex((ans, i) => ans.trim().toLowerCase() === normalizedGuess && !(i in revealed));
+            if (exactIdx !== -1) return exactIdx;
+
+            for (let i = 0; i < answers.length; i++) {
+                if (i in revealed) continue;
+                const ansRaw = (answers[i] || '').toString();
+                const ansNormalized = ansRaw.trim().toLowerCase();
+
+                if (!ansNormalized) {
+                    if (normalizedGuess === 'blank') {
+                        return i;
+                    }
+                    continue;
+                }
+
+                if (ansNormalized === normalizedGuess) {
+                    return i;
+                }
+
+                if (ansNormalized.includes(normalizedGuess) && normalizedGuess.length >= 3) {
+                    return i;
+                }
+
+                if (normalizedGuess.includes(ansNormalized) && ansNormalized.length >= 3) {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         function submitGuess(round) {
@@ -668,15 +719,13 @@
             if (!guess) return;
 
             if (round === 'r1') {
-                const idx = r1Answers.map(a => a.toLowerCase()).indexOf(guess);
-                if (idx !== -1 && !(idx in r1Revealed)) {
+                const idx = getAnswerIndexByGuess(guess, r1Answers, r1Revealed);
+                if (idx !== -1) {
                     r1Revealed[idx] = players[r1CurrentPlayer].cssClass;
                     players[r1CurrentPlayer].score += 10;
                     showMessage(`${round}-message`, `Identified: ${r1Answers[idx]}`, 'success');
-                } else if (idx in r1Revealed) {
-                    showMessage(`${round}-message`, 'Previously identified.', 'error');
                 } else {
-                    showMessage(`${round}-message`, 'Invalid entry.', 'error');
+                    showMessage(`${round}-message`, 'Invalid entry or previously identified.', 'error');
                 }
                 input.value = '';
                 updateR1Board();
@@ -719,23 +768,39 @@
             }
             else if (round === 'r2') {
                 const answers = r2CurrentQuestion.a;
-                const idx = answers.map(a => a.toLowerCase()).indexOf(guess);
-                if (idx !== -1 && !(idx in r2Revealed)) {
-                    r2Revealed[idx] = players[r2CurrentPlayer].cssClass;
-                    players[r2CurrentPlayer].score += 15;
-                    showMessage(`${round}-message`, `Identified: ${answers[idx]}`, 'success');
-                } else if (idx in r2Revealed) {
-                    showMessage(`${round}-message`, 'Previously identified.', 'error');
-                } else {
-                    showMessage(`${round}-message`, 'Invalid entry.', 'error');
+                const currentPlayerIdx = r2CurrentPlayer;
+
+                if (r2StealPhase && !r2StealQueue.includes(currentPlayerIdx)) {
+                    showMessage(`${round}-message`, 'No steal turn available for you now.', 'error');
+                    return;
                 }
+
+                const idx = getAnswerIndexByGuess(guess, answers, r2Revealed);
+                if (idx !== -1) {
+                    r2Revealed[idx] = players[currentPlayerIdx].cssClass;
+                    players[currentPlayerIdx].score += 15;
+                    showMessage(`${round}-message`, `Identified: ${answers[idx]}`, 'success');
+                } else {
+                    showMessage(`${round}-message`, 'Invalid entry or previously identified.', 'error');
+                }
+
                 input.value = '';
                 updateR2Board();
                 updateScores('r2');
+
+                if (!r2StealPhase) {
+                    if (Object.keys(r2Revealed).length === answers.length) {
+                        clearInterval(r2Timer);
+                        showMessage(`${round}-message`, 'All answers found! Finish round.', 'success');
+                        endR2Turn();
+                    }
+                } else {
+                    advanceR2StealOrEnd();
+                }
             }
             else if (round === 'r3') {
-                const idx = r3Answers.map(a => a.toLowerCase()).indexOf(guess);
-                if (idx !== -1 && !(idx in r3Revealed)) {
+                const idx = getAnswerIndexByGuess(guess, r3Answers, r3Revealed);
+                if (idx !== -1) {
                     r3Revealed[idx] = players[r3CurrentPlayer].cssClass;
                     players[r3CurrentPlayer].score += 10;
                     showMessage(`${round}-message`, `Identified: ${r3Answers[idx]}`, 'success');
@@ -745,10 +810,8 @@
                         r3BonusGiven = true;
                         showMessage(`${round}-message`, `Board cleared. Bonus applied.`, 'success');
                     }
-                } else if (idx in r3Revealed) {
-                    showMessage(`${round}-message`, 'Previously identified.', 'error');
                 } else {
-                    showMessage(`${round}-message`, 'Invalid entry.', 'error');
+                    showMessage(`${round}-message`, 'Invalid entry or previously identified.', 'error');
                 }
                 input.value = '';
                 updateR3Board();
@@ -811,18 +874,30 @@
         }
 
         function initRound2() {
-            const order = [...players].sort((a, b) => a.score - b.score);
-            r2CurrentPlayer = players.indexOf(order[0]);
-            
+            if (r2RoundsDone >= 3) {
+                nextRound(3);
+                return;
+            }
+
+            if (!r2MainOrder.length) {
+                r2MainOrder = [...players].sort((a, b) => a.score - b.score).map(p => players.indexOf(p));
+            }
+
+            r2PrimaryPlayer = r2MainOrder[r2RoundsDone];
+            r2CurrentPlayer = r2PrimaryPlayer;
+            r2StealPhase = false;
+            r2StealQueue = [];
+            r2StealIndex = 0;
+
             const player = players[r2CurrentPlayer];
             document.getElementById('r2-title').innerHTML = `<span class="opacity-70">${player.color}</span> <span class="text-violet-50">${player.name}</span> <span class="text-zinc-500 font-normal ml-1">select category</span>`;
-            
+
             document.getElementById('r2-question-choose').classList.add('active');
             document.getElementById('r2-game').classList.remove('active');
 
             const shuffled = [...r2QuestionPool].sort(() => Math.random() - 0.5);
             r2AvailableOptions = shuffled.slice(0, 3);
-            
+
             const optionsHtml = r2AvailableOptions.map((q, i) => `
                 <button class="p-4 rounded-xl border border-violet-900/50 bg-zinc-900 hover:bg-violet-900/20 hover:border-violet-700 transition-all flex flex-col gap-2 text-left shadow-sm" onclick="chooseR2Question(${i})">
                     <iconify-icon icon="solar:folder-with-files-linear" class="text-lg text-violet-400" stroke-width="1.5"></iconify-icon>
@@ -866,36 +941,69 @@
             const timerEl = document.getElementById('r2-timer');
             timerEl.classList.remove('text-rose-400');
             timerEl.classList.add('text-violet-50');
-            
+
+            if (Object.keys(r2Revealed).length === r2CurrentQuestion.a.length) {
+                showMessage('r2-message', 'All answers found before time!', 'success');
+                endR2Turn();
+                return;
+            }
+
+            r2StealPhase = true;
+            r2StealQueue = players.map((_, i) => i).filter(i => i !== r2PrimaryPlayer);
+            r2StealIndex = 0;
+            r2CurrentPlayer = r2StealQueue[r2StealIndex];
+
+            showMessage('r2-message', `Time's up! ${players[r2CurrentPlayer].name} gets steal chance`, 'info');
+            updateR2Board();
+        }
+
+        function advanceR2StealOrEnd() {
+            if (Object.keys(r2Revealed).length === r2CurrentQuestion.a.length) {
+                endR2Turn();
+                return;
+            }
+
+            r2StealIndex++;
+            if (r2StealIndex >= r2StealQueue.length) {
+                endR2Turn();
+                return;
+            }
+
+            r2CurrentPlayer = r2StealQueue[r2StealIndex];
+            showMessage('r2-message', `${players[r2CurrentPlayer].name} now gets the steal attempt`, 'info');
+            updateR2Board();
+        }
+
+        function endR2Turn() {
+            r2StealPhase = false;
             for (let i = 0; i < r2CurrentQuestion.a.length; i++) {
                 if (!(i in r2Revealed)) r2Revealed[i] = 'grey';
             }
             updateR2Board();
-            showMessage('r2-message', 'Timer expired.', 'info');
+            updateScores('r2');
 
-            const remaining = r2QuestionPool.length;
-            if (remaining > 1) {
-                const order = [...players].sort((a, b) => a.score - b.score);
-                const currentIdx = order.findIndex(p => p === players[r2CurrentPlayer]);
-                r2CurrentPlayer = players.indexOf(order[(currentIdx + 1) % 3]);
-
-                removeQuestionFromPool(r2CurrentQuestion, r2QuestionPool);
-                removeQuestionFromPool(r2CurrentQuestion, r3QuestionPool);
-
-                setTimeout(() => { initRound2(); }, 2000);
+            r2RoundsDone++;
+            if (r2RoundsDone < 3) {
+                setTimeout(() => { initRound2(); }, 1500);
+            } else {
+                setTimeout(() => { nextRound(3); }, 1500);
             }
         }
 
         function updateR2Board() {
             const answers = r2CurrentQuestion.a;
             const answersHtml = answers.map((ans, i) => {
+                const answerText = normalizeAnswerForDisplay(ans);
                 let display = '<iconify-icon icon="solar:minus-linear" class="text-xl opacity-20" stroke-width="1.5"></iconify-icon>';
                 let cssClass = getCardClasses('hidden');
-                
+
                 if (i in r2Revealed) {
                     cssClass = getCardClasses(r2Revealed[i]);
-                    display = `<span class="tracking-tight">${ans}</span>`;
+                    display = `<span class="tracking-tight">${answerText}</span>`;
+                } else if (answerText === 'BLANK') {
+                    display = `<span class="tracking-tight text-zinc-400">BLANK</span>`;
                 }
+
                 return `<div class="p-3 rounded-lg border flex items-center justify-center text-center transition-all duration-500 min-h-[3.5rem] text-sm ${cssClass}">${display}</div>`;
             }).join('');
             document.getElementById('r2-answers').innerHTML = answersHtml;
@@ -922,13 +1030,17 @@
             indicator.className = `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border bg-zinc-900 shadow-sm text-xs font-medium transition-all duration-300 ${player.cssClass === 'red' ? 'border-red-800' : player.cssClass === 'blue' ? 'border-blue-800' : 'border-emerald-800'}`;
 
             const answersHtml = r3Answers.map((ans, i) => {
+                const answerText = normalizeAnswerForDisplay(ans);
                 let display = '<iconify-icon icon="solar:minus-linear" class="text-xl opacity-20" stroke-width="1.5"></iconify-icon>';
                 let cssClass = getCardClasses('hidden');
-                
+
                 if (i in r3Revealed) {
                     cssClass = getCardClasses(r3Revealed[i]);
-                    display = `<span class="tracking-tight">${ans}</span>`;
+                    display = `<span class="tracking-tight">${answerText}</span>`;
+                } else if (answerText === 'BLANK') {
+                    display = `<span class="tracking-tight text-zinc-400">BLANK</span>`;
                 }
+
                 return `<div class="p-3 rounded-lg border flex items-center justify-center text-center transition-all duration-500 min-h-[3.5rem] text-sm ${cssClass}">${display}</div>`;
             }).join('');
             document.getElementById('r3-answers').innerHTML = answersHtml;
@@ -970,7 +1082,9 @@
         }
 
         function restartGame() {
+            clearInterval(r2Timer);
             players.forEach(p => p.score = 0);
+
             r1Revealed = {};
             r1PlayerTurns = [0, 0, 0];
             r2Revealed = {};
@@ -981,58 +1095,22 @@
             r2QuestionPool = [...allQuestions];
             r3QuestionPool = [...allQuestions];
 
-            r2Questions.length = 0;
-            r2Questions.push(
-                { "q": "Identify planets comprising the solar system.", "a": ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"] },
-                { "q": "Identify the first 8 elements in the periodic table.", "a": ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen"] },
-                { "q": "Identify the colors present in a rainbow.", "a": ["Red", "Orange", "Yellow", "Green", "Blue", "Indigo", "Violet", ""] },
-                { "q": "Identify months of the Gregorian calendar.", "a": ["January", "February", "March", "April", "May", "June", "July", "August"] },
-                { "q": "Identify the days of the week.", "a": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", ""] },
-                { "q": "3 peg k baad dost, bhai mera breakup hogya kya karu", "a": ["muth maar","4th peg maar","ro le jitna rona hai","main yahan hoon","explore kar","glow up mode on","breakup celebration","tinder pe bio update kar"]},
-                { "q": "ladkia sbse pehli cheez kya notice krti ladko mein", "a": ["confidence", "Bodylanguage", "Dressing sense", "Height","Personality", "Hairstyle", "Sense of Humour", "Scent"] },
-                { "q": "Paisa kamane ka sabse easy tarika kya hai?", "a": ["OnlyFans", "Sugar Mommy banana", "Content Creation", "Freelancing", "Selling Online Coaches", "Dropshipping", "Deliver boy", "Black mail"] },
-                { "q": "Job interview mein sabse pehle kya dekhte hai?", "a": ["Communication Skills", "Knowledge", "Neat & Clean", "Positive Attitude", "Confidence", "Body Language", "Showing Genuine Interest", "Eye Contact"] },
-                { "q": "Nobel Prize award categories", "a": ["Physics", "Chemistry", "Medicine", "Peace", "Literature", "Economics", "", ""] },
-                { "q": "Prominent actors in Bollywood", "a": ["ShahRukh", "Aamir", "Salman", "Akshay", "Ranbir", "Hrithik", "Ajay", "Saif"] },
-                { "q": "Global fiat currencies", "a": ["Dollar", "Euro", "Yen", "Pound", "Rupee", "Yuan", "Won", "Baht"] },
-                { "q": "Mainstream programming languages", "a": ["Python", "JavaScript", "Java", "C++", "Go", "Rust", "Swift", "Ruby"] },
-                { "q": "Duniya ke sabse famous scientists kaunsi hain?", "a": ["Albert Einstein", "Isaac Newton", "Marie Curie", "Nikola Tesla", "Charles Darwin", "Stephen Hawking", "Galileo Galilei", "C.V. Raman"] },
-                { "q": "Cricket ke sabse important trophies kaunsi hain?", "a": ["ICC World Cup", "T20 World Cup", "IPL Trophy", "Ashes", "Border-Gavaskar Trophy", "Asia Cup", "Champions Trophy", "Ranji Trophy"] },
-                { "q": "Teamwork mein sabse important kya hota hai?", "a": ["Trust", "Communication", "Respect", "Collaboration", "Adaptability", "Shared goals", "Conflict resolution", "Support"] },
-                { "q": "Presentation ke dauraan sabse pehle kis cheez par dhyaan dena chahiye?", "a": ["Clarity", "Confidence", "Structure", "Audience engagement", "Visuals", "Body language", "Time management", "Voice modulation"] },
-                { "q": "Leadership qualities mein sabse zaroori kya hai?", "a": ["Vision", "Decision-making", "Empathy", "Integrity", "Confidence", "Delegation", "Motivation", "Accountability"] },
-                { "q": "Networking event mein sabse pehle kya karna chahiye?", "a": ["Introduce yourself", "Smile", "Listen actively", "Ask questions", "Exchange contacts", "Show interest", "Be polite", "Follow up later"] },
-                { "q": "Stressful situation mein sabse pehle kya dikhana chahiye?", "a": ["Calmness", "Patience", "Problem-solving", "Positive attitude", "Resilience", "Focus", "Adaptability", "Confidence"] },
-                { "q": "Recognized Olympic sports", "a": ["Football", "Basketball", "Tennis", "Swimming", "Boxing", "Hockey", "Cycling", "Wrestling"] },
-                { "q": "Commonly consumed fruits", "a": ["Apple", "Banana", "Orange", "Mango", "Grapes", "Pineapple", "Strawberry", "Watermelon"] },
-                { "q": "Widely recognized video games", "a": ["Minecraft", "Fortnite", "PUBG", "Call of Duty", "Among Us", "Valorant", "FIFA", "GTA"] },
-                { "q": "Major Indian metropolitan areas", "a": ["Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Jaipur"] },
-                { "q": "Exam ke ek din pehle kya karna chahiye?", "a": ["sojao", "last minute revision kar","Netflix on karlo","jo yaad hai wo likhlo","Bhagwan bharose","Jo hoga dekha jayega","chit bana lo","Confidence ke saath jao,paper bhi tujhe respect karega"] },
-                { "q": "Salary aane ke baad sabse pehle kya karna chahiye?", "a": ["biryani order kar","EMI pehle, baaki sab baad mein","Netflix renew kar","Story daal-Rich vibes only", "Maa ko paise de", "Randi chod le", "Shopping mall jao","Savings account kho  l"] },
-                { "q": "Crush ne reply nahi kiya toh kya karna chahiye?", "a": ["tension nhi leni","Message her friend", "meme bhej","Move on", "Game khel", "Patience rakho","Take a chill pill","kal good morning bhej"] },
-                { "q": "Weekend pe sabse pehle kya karna chahiye?", "a": ["so jao","Binge watch a Series","GYM","Party karo","chill kar","ghumne jao","Friends se mil","Maa baap ke saath time spend kar"] },
-                { "q": "Identify the continents of Earth.", "a": ["Asia", "Africa", "North America", "South America", "Antarctica", "Europe", "Australia", ""] },
-                { "q": "Identify the oceans of Earth.", "a": ["Pacific", "Atlantic", "Indian", "Arctic", "Southern", "", "", ""] },
-                { "q": "Identify sovereign states located in Europe.", "a": ["France", "Germany", "Italy", "Spain", "UK", "Poland", "Netherlands", "Belgium"] },
-                { "q": "Identify states within the Republic of India.", "a": ["Maharashtra", "Uttar Pradesh", "Karnataka", "Tamil Nadu", "West Bengal", "Gujarat", "Rajasthan", "Madhya Pradesh"] },
-                { "q": "Identify the largest sovereign states by land area.", "a": ["Russia", "Canada", "USA", "China", "Brazil", "Australia", "India", "Argentina"] },
-                { "q": "Boss ne extra kaam de diya toh kya karna chahiye?", "a": ["Say Fuck off","No tension", "Overtime", "LinkedIn khol", "Insta pe story daal-Hardworking employee vibes","Coffee piyo","Promotion hoga", "Boss ko bol–'Sir, main AI hoon kya?"] }
-            );
-            
-            const r1RandomIdx = Math.floor(Math.random() * r1Questions.length);
-            r1Question = r1Questions[r1RandomIdx].q;
-            r1Answers = r1Questions[r1RandomIdx].a;
-            
-            const r3RandomIdx = Math.floor(Math.random() * r3Questions.length);
-            r3Question = r3Questions[r3RandomIdx].q;
-            r3Answers = r3Questions[r3RandomIdx].a;
-            
+            r2MainOrder = [];
+            r2RoundsDone = 0;
+            r2StealPhase = false;
+            r2StealQueue = [];
+            r2StealIndex = 0;
+
+            r2CurrentQuestion = null;
+            r3Question = null;
+            r3Answers = null;
+
             document.querySelectorAll('input').forEach(i => i.value = '');
             document.getElementById('gameModeSelection').classList.add('active');
             document.getElementById('roomCodeInput').classList.remove('show');
             document.getElementById('createRoomOptions').classList.remove('show');
             document.getElementById('createRoomSection').classList.remove('show');
-            
+
             showSection('gameModeSelection');
         }
 
