@@ -198,7 +198,7 @@
                         <div class="w-16 h-16 rounded-full border border-violet-900/50 bg-black shadow-sm flex items-center justify-center mb-4">
                             <div id="r2-timer" class="text-lg font-medium text-violet-50 tabular-nums tracking-tight">50</div>
                         </div>
-                        <button class="text-xs text-zinc-500 hover:text-violet-400 transition-colors absolute right-0 top-4" onclick="hostOnlyStopTimer()">Skip Turn</button>
+                        <button class="text-xs text-zinc-500 hover:text-violet-400 transition-colors absolute right-0 top-4" onclick="stopTimer()">Skip Turn</button>
                     </div>
                     
                     <h3 class="text-lg font-medium tracking-tight text-violet-50 text-center mb-8" id="r2-question-display"></h3>
@@ -278,7 +278,7 @@
             { color: '🟢', name: 'Player 3', score: 0, cssClass: 'green' }
         ];
 
-        const allQuestions = [
+        const r1Questions = [
             { "q": "Identify planets comprising the solar system.", "a": ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"] },
             { "q": "Identify the first 8 elements in the periodic table.", "a": ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen"] },
             { "q": "Identify the colors present in a rainbow.", "a": ["Red", "Orange", "Yellow", "Green", "Blue", "Indigo", "Violet", ""] },
@@ -314,7 +314,7 @@
             { "q": "Identify the largest sovereign states by land area.", "a": ["Russia", "Canada", "USA", "China", "Brazil", "Australia", "India", "Argentina"] },
             { "q": "Boss ne extra kaam de diya toh kya karna chahiye?", "a": ["Say Fuck off","No tension", "Overtime", "LinkedIn khol", "Insta pe story daal-Hardworking employee vibes","Coffee piyo","Promotion hoga", "Boss ko bol–'Sir, main AI hoon kya?"] }
         ];
-
+        const allQuestions = [...r1Questions];
         let r1QuestionPool = [...allQuestions];
         let r2QuestionPool = [...allQuestions];
         let r3QuestionPool = [...allQuestions];
@@ -328,8 +328,44 @@
         let r1Revealed = {};
         let r1CurrentPlayer = 0;
         let r1TurnCount = 0;
-        let r1PlayerTurns = [0, 0, 0];
+        let r1PlayerTurns = [0, 0, 0]; 
 
+        const r2Questions = [
+            { "q": "Identify planets comprising the solar system.", "a": ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"] },
+            { "q": "Identify the first 8 elements in the periodic table.", "a": ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen"] },
+            { "q": "Identify the colors present in a rainbow.", "a": ["Red", "Orange", "Yellow", "Green", "Blue", "Indigo", "Violet", ""] },
+            { "q": "Identify months of the Gregorian calendar.", "a": ["January", "February", "March", "April", "May", "June", "July", "August"] },
+            { "q": "Identify the days of the week.", "a": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", ""] },
+            { "q": "3 peg k baad dost, bhai mera breakup hogya kya karu", "a": ["muth maar","4th peg maar","ro le jitna rona hai","main yahan hoon","explore kar","glow up mode on","breakup celebration","tinder pe bio update kar"]},
+            { "q": "ladkia sbse pehli cheez kya notice krti ladko mein", "a": ["confidence", "Bodylanguage", "Dressing sense", "Height","Personality", "Hairstyle", "Sense of Humour", "Scent"] },
+            { "q": "Paisa kamane ka sabse easy tarika kya hai?", "a": ["OnlyFans", "Sugar Mommy banana", "Content Creation", "Freelancing", "Selling Online Coaches", "Dropshipping", "Deliver boy", "Black mail"] },
+            { "q": "Job interview mein sabse pehle kya dekhte hai?", "a": ["Communication Skills", "Knowledge", "Neat & Clean", "Positive Attitude", "Confidence", "Body Language", "Showing Genuine Interest", "Eye Contact"] },
+            { "q": "Nobel Prize award categories", "a": ["Physics", "Chemistry", "Medicine", "Peace", "Literature", "Economics", "", ""] },
+            { "q": "Prominent actors in Bollywood", "a": ["ShahRukh", "Aamir", "Salman", "Akshay", "Ranbir", "Hrithik", "Ajay", "Saif"] },
+            { "q": "Global fiat currencies", "a": ["Dollar", "Euro", "Yen", "Pound", "Rupee", "Yuan", "Won", "Baht"] },
+            { "q": "Mainstream programming languages", "a": ["Python", "JavaScript", "Java", "C++", "Go", "Rust", "Swift", "Ruby"] },
+            { "q": "Duniya ke sabse famous scientists kaunsi hain?", "a": ["Albert Einstein", "Isaac Newton", "Marie Curie", "Nikola Tesla", "Charles Darwin", "Stephen Hawking", "Galileo Galilei", "C.V. Raman"] },
+            { "q": "Cricket ke sabse important trophies kaunsi hain?", "a": ["ICC World Cup", "T20 World Cup", "IPL Trophy", "Ashes", "Border-Gavaskar Trophy", "Asia Cup", "Champions Trophy", "Ranji Trophy"] },
+            { "q": "Teamwork mein sabse important kya hota hai?", "a": ["Trust", "Communication", "Respect", "Collaboration", "Adaptability", "Shared goals", "Conflict resolution", "Support"] },
+            { "q": "Presentation ke dauraan sabse pehle kis cheez par dhyaan dena chahiye?", "a": ["Clarity", "Confidence", "Structure", "Audience engagement", "Visuals", "Body language", "Time management", "Voice modulation"] },
+            { "q": "Leadership qualities mein sabse zaroori kya hai?", "a": ["Vision", "Decision-making", "Empathy", "Integrity", "Confidence", "Delegation", "Motivation", "Accountability"] },
+            { "q": "Networking event mein sabse pehle kya karna chahiye?", "a": ["Introduce yourself", "Smile", "Listen actively", "Ask questions", "Exchange contacts", "Show interest", "Be polite", "Follow up later"] },
+            { "q": "Stressful situation mein sabse pehle kya dikhana chahiye?", "a": ["Calmness", "Patience", "Problem-solving", "Positive attitude", "Resilience", "Focus", "Adaptability", "Confidence"] },
+            { "q": "Recognized Olympic sports", "a": ["Football", "Basketball", "Tennis", "Swimming", "Boxing", "Hockey", "Cycling", "Wrestling"] },
+            { "q": "Commonly consumed fruits", "a": ["Apple", "Banana", "Orange", "Mango", "Grapes", "Pineapple", "Strawberry", "Watermelon"] },
+            { "q": "Widely recognized video games", "a": ["Minecraft", "Fortnite", "PUBG", "Call of Duty", "Among Us", "Valorant", "FIFA", "GTA"] },
+            { "q": "Major Indian metropolitan areas", "a": ["Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Jaipur"] },
+            { "q": "Exam ke ek din pehle kya karna chahiye?", "a": ["sojao", "last minute revision kar","Netflix on karlo","jo yaad hai wo likhlo","Bhagwan bharose","Jo hoga dekha jayega","chit bana lo","Confidence ke saath jao,paper bhi tujhe respect karega"] },
+            { "q": "Salary aane ke baad sabse pehle kya karna chahiye?", "a": ["biryani order kar","EMI pehle, baaki sab baad mein","Netflix renew kar","Story daal-Rich vibes only", "Maa ko paise de", "Randi chod le", "Shopping mall jao","Savings account khol"] },
+            { "q": "Crush ne reply nahi kiya toh kya karna chahiye?", "a": ["tension nhi leni","Message her friend", "meme bhej","Move on", "Game khel", "Patience rakho","Take a chill pill","kal good morning bhej"] },
+            { "q": "Weekend pe sabse pehle kya karna chahiye?", "a": ["so jao","Binge watch a Series","GYM","Party karo","chill kar","ghumne jao","Friends se mil","Maa baap ke saath time spend kar"] },
+            { "q": "Identify the continents of Earth.", "a": ["Asia", "Africa", "North America", "South America", "Antarctica", "Europe", "Australia", ""] },
+            { "q": "Identify the oceans of Earth.", "a": ["Pacific", "Atlantic", "Indian", "Arctic", "Southern", "", "", ""] },
+            { "q": "Identify sovereign states located in Europe.", "a": ["France", "Germany", "Italy", "Spain", "UK", "Poland", "Netherlands", "Belgium"] },
+            { "q": "Identify states within the Republic of India.", "a": ["Maharashtra", "Uttar Pradesh", "Karnataka", "Tamil Nadu", "West Bengal", "Gujarat", "Rajasthan", "Madhya Pradesh"] },
+            { "q": "Identify the largest sovereign states by land area.", "a": ["Russia", "Canada", "USA", "China", "Brazil", "Australia", "India", "Argentina"] },
+            { "q": "Boss ne extra kaam de diya toh kya karna chahiye?", "a": ["Say Fuck off","No tension", "Overtime", "LinkedIn khol", "Insta pe story daal-Hardworking employee vibes","Coffee piyo","Promotion hoga", "Boss ko bol–'Sir, main AI hoon kya?"] }
+        ];
         let r2CurrentPlayer = 0;
         let r2PrimaryPlayer = 0;
         let r2CurrentQuestion = null;
@@ -337,15 +373,62 @@
         let r2Timer = null;
         let r2TimeLeft = 50;
         let r2AvailableOptions = [];
+
         let r2MainOrder = [];
         let r2RoundsDone = 0;
         let r2StealPhase = false;
         let r2StealQueue = [];
         let r2StealIndex = 0;
+
+        const r3Questions = [
+            { "q": "Identify planets comprising the solar system.", "a": ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"] },
+            { "q": "Identify the first 8 elements in the periodic table.", "a": ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen"] },
+            { "q": "Identify the colors present in a rainbow.", "a": ["Red", "Orange", "Yellow", "Green", "Blue", "Indigo", "Violet", ""] },
+            { "q": "Identify months of the Gregorian calendar.", "a": ["January", "February", "March", "April", "May", "June", "July", "August"] },
+            { "q": "Identify the days of the week.", "a": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", ""] },
+            { "q": "3 peg k baad dost, bhai mera breakup hogya kya karu", "a": ["muth maar","4th peg maar","ro le jitna rona hai","main yahan hoon","explore kar","glow up mode on","breakup celebration","tinder pe bio update kar"]},
+            { "q": "ladkia sbse pehli cheez kya notice krti ladko mein", "a": ["confidence", "Bodylanguage", "Dressing sense", "Height","Personality", "Hairstyle", "Sense of Humour", "Scent"] },
+            { "q": "Paisa kamane ka sabse easy tarika kya hai?", "a": ["OnlyFans", "Sugar Mommy banana", "Content Creation", "Freelancing", "Selling Online Coaches", "Dropshipping", "Deliver boy", "Black mail"] },
+            { "q": "Job interview mein sabse pehle kya dekhte hai?", "a": ["Communication Skills", "Knowledge", "Neat & Clean", "Positive Attitude", "Confidence", "Body Language", "Showing Genuine Interest", "Eye Contact"] },
+            { "q": "Nobel Prize award categories", "a": ["Physics", "Chemistry", "Medicine", "Peace", "Literature", "Economics", "", ""] },
+            { "q": "Prominent actors in Bollywood", "a": ["ShahRukh", "Aamir", "Salman", "Akshay", "Ranbir", "Hrithik", "Ajay", "Saif"] },
+            { "q": "Global fiat currencies", "a": ["Dollar", "Euro", "Yen", "Pound", "Rupee", "Yuan", "Won", "Baht"] },
+            { "q": "Mainstream programming languages", "a": ["Python", "JavaScript", "Java", "C++", "Go", "Rust", "Swift", "Ruby"] },
+            { "q": "Duniya ke sabse famous scientists kaunsi hain?", "a": ["Albert Einstein", "Isaac Newton", "Marie Curie", "Nikola Tesla", "Charles Darwin", "Stephen Hawking", "Galileo Galilei", "C.V. Raman"] },
+            { "q": "Cricket ke sabse important trophies kaunsi hain?", "a": ["ICC World Cup", "T20 World Cup", "IPL Trophy", "Ashes", "Border-Gavaskar Trophy", "Asia Cup", "Champions Trophy", "Ranji Trophy"] },
+            { "q": "Teamwork mein sabse important kya hota hai?", "a": ["Trust", "Communication", "Respect", "Collaboration", "Adaptability", "Shared goals", "Conflict resolution", "Support"] },
+            { "q": "Presentation ke dauraan sabse pehle kis cheez par dhyaan dena chahiye?", "a": ["Clarity", "Confidence", "Structure", "Audience engagement", "Visuals", "Body language", "Time management", "Voice modulation"] },
+            { "q": "Leadership qualities mein sabse zaroori kya hai?", "a": ["Vision", "Decision-making", "Empathy", "Integrity", "Confidence", "Delegation", "Motivation", "Accountability"] },
+            { "q": "Networking event mein sabse pehle kya karna chahiye?", "a": ["Introduce yourself", "Smile", "Listen actively", "Ask questions", "Exchange contacts", "Show interest", "Be polite", "Follow up later"] },
+            { "q": "Stressful situation mein sabse pehle kya dikhana chahiye?", "a": ["Calmness", "Patience", "Problem-solving", "Positive attitude", "Resilience", "Focus", "Adaptability", "Confidence"] },
+            { "q": "Recognized Olympic sports", "a": ["Football", "Basketball", "Tennis", "Swimming", "Boxing", "Hockey", "Cycling", "Wrestling"] },
+            { "q": "Commonly consumed fruits", "a": ["Apple", "Banana", "Orange", "Mango", "Grapes", "Pineapple", "Strawberry", "Watermelon"] },
+            { "q": "Widely recognized video games", "a": ["Minecraft", "Fortnite", "PUBG", "Call of Duty", "Among Us", "Valorant", "FIFA", "GTA"] },
+            { "q": "Major Indian metropolitan areas", "a": ["Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Jaipur"] },
+            { "q": "Exam ke ek din pehle kya karna chahiye?", "a": ["sojao", "last minute revision kar","Netflix on karlo","jo yaad hai wo likhlo","Bhagwan bharose","Jo hoga dekha jayega","chit bana lo","Confidence ke saath jao,paper bhi tujhe respect karega"] },
+            { "q": "Salary aane ke baad sabse pehle kya karna chahiye?", "a": ["biryani order kar","EMI pehle, baaki sab baad mein","Netflix renew kar","Story daal-Rich vibes only", "Maa ko paise de", "Randi chod le", "Shopping mall jao","Savings account khol"] },
+            { "q": "Crush ne reply nahi kiya toh kya karna chahiye?", "a": ["tension nhi leni","Message her friend", "meme bhej","Move on", "Game khel", "Patience rakho","Take a chill pill","kal good morning bhej"] },
+            { "q": "Weekend pe sabse pehle kya karna chahiye?", "a": ["so jao","Binge watch a Series","GYM","Party karo","chill kar","ghumne jao","Friends se mil","Maa baap ke saath time spend kar"] },
+            { "q": "Identify the continents of Earth.", "a": ["Asia", "Africa", "North America", "South America", "Antarctica", "Europe", "Australia", ""] },
+            { "q": "Identify the oceans of Earth.", "a": ["Pacific", "Atlantic", "Indian", "Arctic", "Southern", "", "", ""] },
+            { "q": "Identify sovereign states located in Europe.", "a": ["France", "Germany", "Italy", "Spain", "UK", "Poland", "Netherlands", "Belgium"] },
+            { "q": "Identify states within the Republic of India.", "a": ["Maharashtra", "Uttar Pradesh", "Karnataka", "Tamil Nadu", "West Bengal", "Gujarat", "Rajasthan", "Madhya Pradesh"] },
+            { "q": "Identify the largest sovereign states by land area.", "a": ["Russia", "Canada", "USA", "China", "Brazil", "Australia", "India", "Argentina"] },
+            { "q": "Boss ne extra kaam de diya toh kya karna chahiye?", "a": ["Say Fuck off","No tension", "Overtime", "LinkedIn khol", "Insta pe story daal-Hardworking employee vibes","Coffee piyo","Promotion hoga", "Boss ko bol–'Sir, main AI hoon kya?"] }
+        ];
         let r3Question, r3Answers;
         let r3Revealed = {};
         let r3CurrentPlayer = 0;
         let r3BonusGiven = false;
+
+        function getCardClasses(teamClass) {
+            if (teamClass === 'red') return 'border-red-800 bg-red-900/20 text-red-300 shadow-sm';
+            if (teamClass === 'blue') return 'border-blue-800 bg-blue-900/20 text-blue-300 shadow-sm';
+            if (teamClass === 'green') return 'border-emerald-800 bg-emerald-900/20 text-emerald-300 shadow-sm';
+            if (teamClass === 'grey') return 'border-zinc-800 bg-zinc-900/50 text-zinc-500 shadow-sm';
+            return 'border-zinc-900/30 bg-black/50 text-zinc-600 shadow-sm';
+        }
+
         let socket = null;
         let localPlayerId = null;
         let isHost = false;
@@ -353,186 +436,122 @@
         let currentRoomCode = '';
         let localPlayerName = '';
 
-        function broadcastState(action, extra = {}) {
-            if (gameMode !== 'remote' || !isHost || !socket) return;
-            socket.emit('update_game', {
-                room_id: currentRoomCode,
-                game_state: {
-                    action,
-                    players: players.map(p => ({ name: p.name, score: p.score })),
-                    ...extra
-                }
-            });
-        }
-
-        function getCardClasses(teamClass) {
-            if (teamClass === 'red')   return 'border-red-800 bg-red-900/20 text-red-300 shadow-sm';
-            if (teamClass === 'blue')  return 'border-blue-800 bg-blue-900/20 text-blue-300 shadow-sm';
-            if (teamClass === 'green') return 'border-emerald-800 bg-emerald-900/20 text-emerald-300 shadow-sm';
-            if (teamClass === 'grey')  return 'border-zinc-800 bg-zinc-900/50 text-zinc-500 shadow-sm';
-            return 'border-zinc-900/30 bg-black/50 text-zinc-600 shadow-sm';
-        }
-
         function initSocket() {
-            if (socket) return;
-            socket = io();
-
-            socket.on('player_joined', (data) => {
-                if (data.players) updateWaitingPlayersList(data.players);
-            });
-
-            socket.on('game_updated', (gs) => {
-                console.log('game_updated:', gs.action);
-
-                if (gs.players) {
-                    gs.players.forEach((p, i) => {
-                        if (players[i]) { players[i].name = p.name; players[i].score = p.score; }
-                    });
-                }
-
-                switch (gs.action) {
-
-                    case 'start_game':
-                        r1Question        = gs.r1Question;
-                        r1Answers         = gs.r1Answers;
-                        r1Revealed        = gs.r1Revealed        || {};
-                        r1CurrentPlayer   = gs.r1CurrentPlayer   || 0;
-                        r1TurnCount       = gs.r1TurnCount       || 0;
-                        r1PlayerTurns     = gs.r1PlayerTurns     || [0,0,0];
-                        showSection('round1');
+            if (!socket) {
+                socket = io();
+                
+                socket.on('player_joined', (data) => {
+                    if (data.players) updateWaitingPlayersList(data.players);
+                });
+                
+                socket.on('game_updated', (gameState) => {
+                    console.log('game_updated event received:', gameState.action);
+                    
+                    if (gameState.action === 'start_game' && !isHost) {
+                        console.log('Non-host player received start_game event');
+                        console.log('Received question:', gameState.r1Question);
+                        
+                        // Update player information
+                        players.forEach((p, i) => { if (gameState.players[i]) p.name = gameState.players[i].name; });
+                        
+                        // Set round 1 state first
+                        r1Question = gameState.r1Question || '';
+                        r1Answers = gameState.r1Answers || [];
+                        r1Revealed = gameState.r1Revealed || {};
+                        r1CurrentPlayer = gameState.r1CurrentPlayer || 0;
+                        r1TurnCount = gameState.r1TurnCount || 0;
+                        r1PlayerTurns = gameState.r1PlayerTurns || [0, 0, 0];
+                        
+                        console.log('Game state variables set, showing section...');
+                        
+                        // Show round 1 section to render DOM elements
+                        showSection(gameState.currentSection);
+                        
+                        // Update UI after a small delay to ensure DOM is ready
                         setTimeout(() => {
-                            document.getElementById('r1-question').textContent = r1Question;
+                            const questionEl = document.getElementById('r1-question');
+                            if (questionEl) {
+                                questionEl.textContent = r1Question;
+                                console.log('Question updated in DOM');
+                            } else {
+                                console.error('r1-question element not found in DOM');
+                            }
                             updateR1Board();
                             updateScores('r1');
                             updateInputFieldStates();
+                            console.log('Game state applied for non-host player');
                         }, 100);
-                        break;
-
-                    case 'r1_update':
-                        r1Revealed      = gs.r1Revealed;
-                        r1CurrentPlayer = gs.r1CurrentPlayer;
-                        r1PlayerTurns   = gs.r1PlayerTurns;
-                        r1TurnCount     = gs.r1TurnCount;
-                        updateR1Board(); updateScores('r1'); updateInputFieldStates();
-                        break;
-                    case 'r2_init':
-                        r2RoundsDone      = gs.r2RoundsDone;
-                        r2PrimaryPlayer   = gs.r2PrimaryPlayer;
-                        r2CurrentPlayer   = gs.r2CurrentPlayer;
-                        r2AvailableOptions= gs.r2AvailableOptions;
-                        r2StealPhase      = false;
-                        r2StealQueue      = [];
-                        r2StealIndex      = 0;
-                        r2Revealed        = {};
-                        showSection('round2');
-                        setTimeout(() => { renderR2Choose(); updateScores('r2'); updateInputFieldStates(); }, 100);
-                        break;
-                    case 'r2_question_chosen':
-                        r2CurrentQuestion = gs.r2CurrentQuestion;
-                        r2Revealed        = {};
-                        r2TimeLeft        = 50;
-                        r2StealPhase      = false;
-                        r2StealQueue      = [];
-                        r2StealIndex      = 0;
-                        r2CurrentPlayer   = gs.r2PrimaryPlayer;
-                        r2PrimaryPlayer   = gs.r2PrimaryPlayer;
-                        showSection('round2');
-                        setTimeout(() => {
-                            document.getElementById('r2-question-choose').classList.remove('active');
-                            document.getElementById('r2-game').classList.add('active');
-                            document.getElementById('r2-question-display').textContent = r2CurrentQuestion.q;
-                            document.getElementById('r2-title').innerHTML = buildR2Title();
-                            startTimer();
-                            updateR2Board();
-                            updateScores('r2');
-                            updateInputFieldStates();
-                        }, 100);
-                        break;
-                    case 'r2_update':
-                        r2Revealed      = gs.r2Revealed;
-                        r2CurrentPlayer = gs.r2CurrentPlayer;
-                        r2StealPhase    = gs.r2StealPhase;
-                        r2StealQueue    = gs.r2StealQueue;
-                        r2StealIndex    = gs.r2StealIndex;
-                        updateR2Board(); updateScores('r2'); updateInputFieldStates();
-                        break;
-
-                    case 'r2_timer_stop':
-                        clearInterval(r2Timer);
-                        document.getElementById('r2-timer').classList.remove('text-rose-400');
-                        document.getElementById('r2-timer').classList.add('text-violet-50');
-                        r2StealPhase    = gs.r2StealPhase;
-                        r2StealQueue    = gs.r2StealQueue;
-                        r2StealIndex    = gs.r2StealIndex;
-                        r2CurrentPlayer = gs.r2CurrentPlayer;
-                        r2Revealed      = gs.r2Revealed;
-                        if (r2StealPhase) {
-                            showMessage('r2-message', `Time's up! ${players[r2CurrentPlayer].name} gets steal chance`, 'info');
-                        } else {
-                            showMessage('r2-message', 'All answers found before time!', 'success');
-                        }
-                        updateR2Board(); updateInputFieldStates();
-                        break;
-
-                    case 'r2_end_turn':
-                        clearInterval(r2Timer);
-                        r2Revealed      = gs.r2Revealed;
-                        r2RoundsDone    = gs.r2RoundsDone;
-                        updateR2Board(); updateScores('r2');
-                        // Next sub-turn will arrive via r2_init
-                        break;
-
-                    case 'r3_init':
-                        r3Question      = gs.r3Question;
-                        r3Answers       = gs.r3Answers;
-                        r3Revealed      = {};
-                        r3CurrentPlayer = 0;
-                        r3BonusGiven    = false;
-                        showSection('round3');
-                        setTimeout(() => {
-                            document.getElementById('r3-question').textContent = r3Question;
-                            updateR3Board();
-                            updateScores('r3');
-                            updateInputFieldStates();
-                        }, 100);
-                        break;
-
-                    case 'r3_update':
-                        r3Revealed      = gs.r3Revealed;
-                        r3CurrentPlayer = gs.r3CurrentPlayer;
-                        r3BonusGiven    = gs.r3BonusGiven;
-                        updateR3Board(); updateScores('r3'); updateInputFieldStates();
-
-                        if (Object.keys(r3Revealed).length === r3Answers.length) {
-                            setTimeout(() => showFinalScores(), 1500);
-                        }
-                        break;
-
-                    case 'show_final':
-                        showFinalScores();
-                        break;
-                }
-            });
+                    } else if (gameState.action === 'r1_update') {
+                        // Apply R1 game state updates
+                        r1Revealed = gameState.r1Revealed;
+                        gameState.players.forEach((p, i) => {
+                            if (players[i]) {
+                                players[i].name = p.name;
+                                players[i].score = p.score;
+                            }
+                        });
+                        r1CurrentPlayer = gameState.r1CurrentPlayer;
+                        r1PlayerTurns = gameState.r1PlayerTurns;
+                        r1TurnCount = gameState.r1TurnCount;
+                        
+                        updateR1Board();
+                        updateScores('r1');
+                        updateInputFieldStates();
+                    } else if (gameState.action === 'r2_update') {
+                        // Apply R2 game state updates
+                        r2Revealed = gameState.r2Revealed;
+                        gameState.players.forEach((p, i) => {
+                            if (players[i]) {
+                                players[i].name = p.name;
+                                players[i].score = p.score;
+                            }
+                        });
+                        r2CurrentPlayer = gameState.r2CurrentPlayer;
+                        r2StealPhase = gameState.r2StealPhase;
+                        r2StealQueue = gameState.r2StealQueue;
+                        
+                        updateR2Board();
+                        updateScores('r2');
+                        updateInputFieldStates();
+                    } else if (gameState.action === 'r3_update') {
+                        // Apply R3 game state updates
+                        r3Revealed = gameState.r3Revealed;
+                        gameState.players.forEach((p, i) => {
+                            if (players[i]) {
+                                players[i].name = p.name;
+                                players[i].score = p.score;
+                            }
+                        });
+                        r3CurrentPlayer = gameState.r3CurrentPlayer;
+                        r3BonusGiven = gameState.r3BonusGiven;
+                        
+                        updateR3Board();
+                        updateScores('r3');
+                        updateInputFieldStates();
+                    }
+                });
+            }
         }
-
+        
         function updateWaitingPlayersList(roomPlayers) {
             const waitingText = document.getElementById('waitingPlayers');
             if (waitingText) waitingText.textContent = `Connected: ${roomPlayers.length}/3`;
-
+            
             const colorMap = [
                 { color: '🔴', cssClass: 'red' },
                 { color: '🔵', cssClass: 'blue' },
                 { color: '🟢', cssClass: 'green' }
             ];
+
             roomPlayers.forEach((p, idx) => {
                 if (idx < players.length) {
-                    players[idx].name     = p.name;
+                    players[idx].name = p.name;
                     players[idx].remoteId = p.id;
-                    players[idx].color    = colorMap[idx].color;
+                    players[idx].color = colorMap[idx].color;
                     players[idx].cssClass = colorMap[idx].cssClass;
                 }
             });
-
+            
             if (roomPlayers.length >= 2 && !document.getElementById('setup').classList.contains('active') && isHost) {
                 showSection('setup');
             }
@@ -546,9 +565,7 @@
             container.innerHTML = players.map((p, i) => `
                 <div class="flex items-center gap-3 w-full">
                     <div class="flex items-center justify-center w-8 h-8 rounded-full border border-violet-900/50 bg-black shadow-sm text-xs">${p.color}</div>
-                    <input type="text" id="player${i}" placeholder="${p.name}" value="${p.name}"
-                        ${gameMode === 'remote' && p.remoteId !== localPlayerId ? 'disabled' : ''}
-                        class="flex-1 px-3 py-2 bg-transparent border-b border-violet-900/50 focus:outline-none focus:border-violet-600 transition-all text-sm text-violet-50 placeholder-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <input type="text" id="player${i}" placeholder="${p.name}" value="${p.name}" ${gameMode === 'remote' && p.remoteId !== localPlayerId ? 'disabled' : ''} class="flex-1 px-3 py-2 bg-transparent border-b border-violet-900/50 focus:outline-none focus:border-violet-600 transition-all text-sm text-violet-50 placeholder-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed">
                 </div>
             `).join('');
 
@@ -569,162 +586,245 @@
 
         async function joinRemoteGame() {
             const playerName = document.getElementById('playerName').value.trim();
-            const roomCode   = document.getElementById('roomCode').value.trim();
+            const roomCode = document.getElementById('roomCode').value.trim();
             if (!playerName || !roomCode) return;
-
+            
             const btn = document.querySelector('#roomCodeInput button');
-            btn.disabled = true; btn.textContent = 'Joining...';
-
+            const origText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Joining...';
+            
             try {
                 const joinRes = await fetch(`/api/join-room/${roomCode}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ player_name: playerName })
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ player_name: playerName, player_color: '�' })
                 });
+                
                 if (!joinRes.ok) {
                     const err = await joinRes.json();
                     alert(err.error || 'Failed to join room');
-                    btn.disabled = false; btn.textContent = 'Join';
+                    btn.disabled = false;
+                    btn.textContent = origText;
                     return;
                 }
+                
                 const joinData = await joinRes.json();
                 currentRoomCode = roomCode;
                 localPlayerName = playerName;
-                localPlayerId   = joinData.player.id;
-                gameMode = 'remote'; isHost = false;
-
-                setHeaderRoomCode(roomCode);
+                localPlayerId = joinData.player.id;
+                gameMode = 'remote';
+                isHost = false;
+                
+                document.getElementById('headerRoomCodeDisplay').classList.remove('hidden');
+                document.getElementById('headerRoomCodeDisplay').classList.add('flex');
+                document.getElementById('headerRoomCode').textContent = roomCode;
+                
                 initSocket();
                 socket.emit('join_room', { room_id: roomCode, player_id: localPlayerId });
+                
                 showSection('setup');
                 updateWaitingPlayersList(joinData.room.players);
-            } catch (e) {
-                console.error(e);
-                btn.disabled = false; btn.textContent = 'Join';
+            } catch (error) {
+                console.error(error);
+                btn.disabled = false;
+                btn.textContent = origText;
             }
         }
 
         async function createRemoteRoom() {
             const playerName = document.getElementById('hostName').value.trim();
             if (!playerName) return;
-
+            
             const btn = document.querySelector('#createRoomOptions button');
-            btn.disabled = true; btn.textContent = 'Creating...';
-
+            const origText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Creating...';
+            
             try {
-                const res  = await fetch('/api/create-room', { method: 'POST' });
+                const res = await fetch('/api/create-room', { method: 'POST' });
                 const data = await res.json();
                 const roomCode = data.room_id;
-
-                const joinRes  = await fetch(`/api/join-room/${roomCode}`, {
+                
+                const joinRes = await fetch(`/api/join-room/${roomCode}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ player_name: playerName })
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ player_name: playerName, player_color: '�' })
                 });
                 const joinData = await joinRes.json();
-
+                
                 document.getElementById('newRoomCode').value = roomCode;
                 document.getElementById('createRoomSection').classList.add('show');
                 document.getElementById('roomCodeInput').classList.remove('show');
                 document.getElementById('createRoomOptions').classList.remove('show');
-
+                
                 currentRoomCode = roomCode;
                 localPlayerName = playerName;
-                localPlayerId   = joinData.player.id;
-                gameMode = 'remote'; isHost = true;
-
-                setHeaderRoomCode(roomCode);
+                localPlayerId = joinData.player.id;
+                gameMode = 'remote';
+                isHost = true;
+                
+                document.getElementById('headerRoomCodeDisplay').classList.remove('hidden');
+                document.getElementById('headerRoomCodeDisplay').classList.add('flex');
+                document.getElementById('headerRoomCode').textContent = roomCode;
+                
                 initSocket();
                 socket.emit('join_room', { room_id: roomCode, player_id: localPlayerId });
+                
                 updateWaitingPlayersList([joinData.player]);
-            } catch (e) {
-                console.error(e);
-                btn.disabled = false; btn.textContent = 'Create Room';
+            } catch (error) {
+                console.error(error);
+                btn.disabled = false;
+                btn.textContent = origText;
             }
-        }
-
-        function setHeaderRoomCode(code) {
-            document.getElementById('headerRoomCodeDisplay').classList.remove('hidden');
-            document.getElementById('headerRoomCodeDisplay').classList.add('flex');
-            document.getElementById('headerRoomCode').textContent = code;
         }
 
         function startGame() {
             players.forEach((p, i) => {
-                const v = document.getElementById(`player${i}`).value;
-                if (v.trim()) p.name = v;
+                const name = document.getElementById(`player${i}`).value;
+                if (name.trim()) p.name = name;
             });
-
+            
+            console.log('Starting game, gameMode:', gameMode, 'isHost:', isHost);
+            
+            // Show section FIRST to ensure DOM is ready
             showSection('round1');
+            
+            // Initialize round 1 AFTER section is visible
             setTimeout(() => {
+                console.log('Initializing Round 1...');
                 initRound1();
-                broadcastState('start_game', {
-                    currentSection: 'round1',
-                    r1Question, r1Answers, r1Revealed,
-                    r1CurrentPlayer, r1PlayerTurns, r1TurnCount
-                });
-                updateInputFieldStates();
+                console.log('Round 1 initialized with question:', r1Question);
+                
+                // Broadcast game state to remote players
+                if (gameMode === 'remote' && isHost && socket) {
+                    console.log('Broadcasting game state to remote players');
+                    socket.emit('update_game', {
+                        room_id: currentRoomCode,
+                        game_state: { 
+                            action: 'start_game', 
+                            players: players.map(p => ({ name: p.name, score: p.score })), 
+                            currentSection: 'round1', 
+                            r1Question: r1Question, 
+                            r1Answers: r1Answers,
+                            r1Revealed: r1Revealed,
+                            r1CurrentPlayer: r1CurrentPlayer,
+                            r1PlayerTurns: r1PlayerTurns,
+                            r1TurnCount: r1TurnCount
+                        }
+                    });
+                }
+                
+                // Update input field states for remote play
+                if (gameMode === 'remote') {
+                    updateInputFieldStates();
+                }
             }, 100);
         }
 
         function initRound1() {
-            if (!r1QuestionPool.length) r1QuestionPool = [...allQuestions];
-            const idx = Math.floor(Math.random() * r1QuestionPool.length);
-            const sel = r1QuestionPool.splice(idx, 1)[0];
-            r1Question = sel.q; r1Answers = sel.a;
-            removeQuestionFromPool(sel, r2QuestionPool);
-            removeQuestionFromPool(sel, r3QuestionPool);
-
-            document.getElementById('r1-question').textContent = r1Question;
-            r1Revealed = {}; r1CurrentPlayer = 0; r1TurnCount = 0; r1PlayerTurns = [0,0,0];
-            updateR1Board(); updateScores('r1');
+            if (r1QuestionPool.length === 0) r1QuestionPool = [...allQuestions];
+            const randomIdx = Math.floor(Math.random() * r1QuestionPool.length);
+            const selected = r1QuestionPool.splice(randomIdx, 1)[0];
+            r1Question = selected.q;
+            r1Answers = selected.a;
+            removeQuestionFromPool(selected, r2QuestionPool);
+            removeQuestionFromPool(selected, r3QuestionPool);
+            
+            // Update DOM elements
+            const questionEl = document.getElementById('r1-question');
+            if (questionEl) {
+                questionEl.textContent = r1Question;
+                console.log('R1 Question set:', r1Question);
+            } else {
+                console.error('r1-question element not found');
+            }
+            
+            r1Revealed = {};
+            r1CurrentPlayer = 0;
+            r1TurnCount = 0;
+            r1PlayerTurns = [0, 0, 0];
+            updateR1Board();
+            updateScores('r1');
         }
 
         function normalizeAnswerForDisplay(ans) {
-            const t = (ans || '').toString().trim();
-            return t === '' ? 'BLANK' : ans;
+            const trimmed = (ans || '').toString().trim();
+            return trimmed === '' ? 'BLANK' : ans;
         }
 
         function updateR1Board() {
-            const player    = players[r1CurrentPlayer];
+            const player = players[r1CurrentPlayer];
             const indicator = document.getElementById('r1-current-player');
-            if (!indicator) return;
-
+            
+            if (!indicator) {
+                console.warn('r1-current-player element not found');
+                return;
+            }
+            
             const turnsLeft = 3 - r1PlayerTurns[r1CurrentPlayer];
             indicator.innerHTML = `<span class="opacity-70">${player.color}</span> <span class="text-violet-50">${player.name}</span> <span class="ml-1 text-zinc-500 font-normal">· ${turnsLeft} remaining</span>`;
+            
             indicator.className = `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border bg-zinc-900 shadow-sm text-xs font-medium transition-all duration-300 ${player.cssClass === 'red' ? 'border-red-800' : player.cssClass === 'blue' ? 'border-blue-800' : 'border-emerald-800'}`;
 
-            const el = document.getElementById('r1-answers');
-            if (el) el.innerHTML = buildAnswerCards(r1Answers, r1Revealed);
-            if (gameMode === 'remote') updateInputFieldStates();
-        }
-
-        function buildAnswerCards(answers, revealed) {
-            return answers.map((ans, i) => {
-                const text = normalizeAnswerForDisplay(ans);
+            const answersHtml = r1Answers.map((ans, i) => {
+                const answerText = normalizeAnswerForDisplay(ans);
                 let display = '<iconify-icon icon="solar:minus-linear" class="text-xl opacity-20" stroke-width="1.5"></iconify-icon>';
-                let css     = getCardClasses('hidden');
-                if (i in revealed) {
-                    css     = getCardClasses(revealed[i]);
-                    display = `<span class="tracking-tight">${text}</span>`;
-                } else if (text === 'BLANK') {
+                let cssClass = getCardClasses('hidden');
+
+                if (i in r1Revealed) {
+                    cssClass = getCardClasses(r1Revealed[i]);
+                    display = `<span class="tracking-tight">${answerText}</span>`;
+                } else if (answerText === 'BLANK') {
                     display = `<span class="tracking-tight text-zinc-400">BLANK</span>`;
                 }
-                return `<div class="p-3 rounded-lg border flex items-center justify-center text-center transition-all duration-500 min-h-[3.5rem] text-sm ${css}">${display}</div>`;
+
+                return `<div class="p-3 rounded-lg border flex items-center justify-center text-center transition-all duration-500 min-h-[3.5rem] text-sm ${cssClass}">${display}</div>`;
             }).join('');
+            
+            const answersContainer = document.getElementById('r1-answers');
+            if (answersContainer) {
+                answersContainer.innerHTML = answersHtml;
+            }
+            
+            // Update input field states when current player changes
+            if (gameMode === 'remote') {
+                updateInputFieldStates();
+            }
         }
 
         function getAnswerIndexByGuess(guess, answers, revealed) {
-            const g = guess.trim().toLowerCase();
-            if (!g) return -1;
+            const normalizedGuess = guess.trim().toLowerCase();
+            if (!normalizedGuess) return -1;
+
+            const exactIdx = answers.findIndex((ans, i) => ans.trim().toLowerCase() === normalizedGuess && !(i in revealed));
+            if (exactIdx !== -1) return exactIdx;
+
             for (let i = 0; i < answers.length; i++) {
                 if (i in revealed) continue;
-                const a = (answers[i] || '').toString().trim().toLowerCase();
-                if (!a) { if (g === 'blank') return i; continue; }
-                if (a === g) return i;
-                if (a.includes(g) && g.length >= 3) return i;
-                if (g.includes(a) && a.length >= 3) return i;
+                const ansRaw = (answers[i] || '').toString();
+                const ansNormalized = ansRaw.trim().toLowerCase();
+
+                if (!ansNormalized) {
+                    if (normalizedGuess === 'blank') {
+                        return i;
+                    }
+                    continue;
+                }
+
+                if (ansNormalized === normalizedGuess) {
+                    return i;
+                }
+
+                if (ansNormalized.includes(normalizedGuess) && normalizedGuess.length >= 3) {
+                    return i;
+                }
+
+                if (normalizedGuess.includes(ansNormalized) && ansNormalized.length >= 3) {
+                    return i;
+                }
             }
+
             return -1;
         }
 
@@ -732,15 +832,20 @@
             const input = document.getElementById(`${round}-guess`);
             const guess = input.value.trim().toLowerCase();
             if (!guess) return;
+
+            // Check if it's the current player's turn in remote mode
             if (gameMode === 'remote') {
-                if (round === 'r1' && !isMyTurn_r1()) {
-                    showMessage('r1-message', "Not your turn!", 'error'); return;
+                if (round === 'r1' && r1CurrentPlayer !== localPlayerId) {
+                    showMessage(`${round}-message`, 'It\'s not your turn!', 'error');
+                    return;
                 }
-                if (round === 'r2' && !isMyTurn_r2()) {
-                    showMessage('r2-message', "Not your turn!", 'error'); return;
+                if (round === 'r2' && r2CurrentPlayer !== localPlayerId) {
+                    showMessage(`${round}-message`, 'It\'s not your turn!', 'error');
+                    return;
                 }
-                if (round === 'r3' && !isMyTurn_r3()) {
-                    showMessage('r3-message', "Not your turn!", 'error'); return;
+                if (round === 'r3' && r3CurrentPlayer !== localPlayerId) {
+                    showMessage(`${round}-message`, 'It\'s not your turn!', 'error');
+                    return;
                 }
             }
 
@@ -749,173 +854,318 @@
                 if (idx !== -1) {
                     r1Revealed[idx] = players[r1CurrentPlayer].cssClass;
                     players[r1CurrentPlayer].score += 10;
-                    showMessage('r1-message', `Identified: ${r1Answers[idx]}`, 'success');
+                    showMessage(`${round}-message`, `Identified: ${r1Answers[idx]}`, 'success');
                 } else {
-                    showMessage('r1-message', 'Invalid entry or previously identified.', 'error');
+                    showMessage(`${round}-message`, 'Invalid entry or previously identified.', 'error');
                 }
                 input.value = '';
+                updateR1Board();
+                updateScores('r1');
 
                 r1TurnCount++;
                 r1PlayerTurns[r1CurrentPlayer]++;
-
-                const allRevealed = Object.keys(r1Revealed).length === r1Answers.length;
-                const turnsExhausted = r1PlayerTurns.every(t => t >= 3);
-
-                if (allRevealed || turnsExhausted) {
+                
+                if (r1PlayerTurns[r1CurrentPlayer] >= 3) {
+                    let nextPlayer = (r1CurrentPlayer + 1) % 3;
+                    let foundNext = false;
+                    for (let i = 0; i < 3; i++) {
+                        if (r1PlayerTurns[nextPlayer] < 3) {
+                            foundNext = true;
+                            break;
+                        }
+                        nextPlayer = (nextPlayer + 1) % 3;
+                    }
+                    
+                    if (!foundNext || Object.keys(r1Revealed).length === r1Answers.length) {
+                        for (let i = 0; i < r1Answers.length; i++) {
+                            if (!(i in r1Revealed)) r1Revealed[i] = 'grey';
+                        }
+                        updateR1Board();
+                        showMessage(`${round}-message`, 'Phase completed.', 'info');
+                    } else {
+                        r1CurrentPlayer = nextPlayer;
+                        updateR1Board();
+                    }
+                } else if (Object.keys(r1Revealed).length === r1Answers.length) {
                     for (let i = 0; i < r1Answers.length; i++) {
                         if (!(i in r1Revealed)) r1Revealed[i] = 'grey';
                     }
-                    showMessage('r1-message', 'Phase completed.', 'info');
-                } else if (r1PlayerTurns[r1CurrentPlayer] >= 3) {
-                    let next = (r1CurrentPlayer + 1) % 3;
-                    for (let i = 0; i < 3; i++) {
-                        if (r1PlayerTurns[next] < 3) break;
-                        next = (next + 1) % 3;
-                    }
-                    r1CurrentPlayer = next;
+                    updateR1Board();
+                    showMessage(`${round}-message`, 'Phase completed.', 'info');
                 } else {
                     r1CurrentPlayer = (r1CurrentPlayer + 1) % 3;
+                    updateR1Board();
                 }
 
-                updateR1Board(); updateScores('r1');
-                broadcastState('r1_update', { r1Revealed, r1CurrentPlayer, r1PlayerTurns, r1TurnCount });
+                // Emit game state update for remote play
+                if (gameMode === 'remote' && socket) {
+                    socket.emit('update_game', {
+                        room_id: currentRoomCode,
+                        game_state: {
+                            action: 'r1_update',
+                            r1Revealed: r1Revealed,
+                            players: players.map(p => ({ name: p.name, score: p.score })),
+                            r1CurrentPlayer: r1CurrentPlayer,
+                            r1PlayerTurns: r1PlayerTurns,
+                            r1TurnCount: r1TurnCount
+                        }
+                    });
+                }
             }
-
             else if (round === 'r2') {
-                if (gameMode === 'remote' && !isHost) {
-                    socket.emit('player_action', { room_id: currentRoomCode, action: { type: 'r2_guess', guess, playerId: localPlayerId } });
-                    input.value = '';
+                const answers = r2CurrentQuestion.a;
+                const currentPlayerIdx = r2CurrentPlayer;
+
+                if (r2StealPhase && !r2StealQueue.includes(currentPlayerIdx)) {
+                    showMessage(`${round}-message`, 'No steal turn available for you now.', 'error');
                     return;
                 }
-                processR2Guess(guess);
-                input.value = '';
-            }
 
+                const idx = getAnswerIndexByGuess(guess, answers, r2Revealed);
+                if (idx !== -1) {
+                    r2Revealed[idx] = players[currentPlayerIdx].cssClass;
+                    players[currentPlayerIdx].score += 15;
+                    showMessage(`${round}-message`, `Identified: ${answers[idx]}`, 'success');
+                } else {
+                    showMessage(`${round}-message`, 'Invalid entry or previously identified.', 'error');
+                }
+
+                input.value = '';
+                updateR2Board();
+                updateScores('r2');
+
+                if (!r2StealPhase) {
+                    if (Object.keys(r2Revealed).length === answers.length) {
+                        clearInterval(r2Timer);
+                        showMessage(`${round}-message`, 'All answers found! Finish round.', 'success');
+                        endR2Turn();
+                    }
+                } else {
+                    advanceR2StealOrEnd();
+                }
+
+                // Emit game state update for remote play
+                if (gameMode === 'remote' && socket) {
+                    socket.emit('update_game', {
+                        room_id: currentRoomCode,
+                        game_state: {
+                            action: 'r2_update',
+                            r2Revealed: r2Revealed,
+                            players: players.map(p => ({ name: p.name, score: p.score })),
+                            r2CurrentPlayer: r2CurrentPlayer,
+                            r2StealPhase: r2StealPhase,
+                            r2StealQueue: r2StealQueue
+                        }
+                    });
+                }
+            }
             else if (round === 'r3') {
-                if (gameMode === 'remote' && !isHost) {
-                    socket.emit('player_action', { room_id: currentRoomCode, action: { type: 'r3_guess', guess, playerId: localPlayerId } });
-                    input.value = '';
-                    return;
+                const idx = getAnswerIndexByGuess(guess, r3Answers, r3Revealed);
+                if (idx !== -1) {
+                    r3Revealed[idx] = players[r3CurrentPlayer].cssClass;
+                    players[r3CurrentPlayer].score += 10;
+                    showMessage(`${round}-message`, `Identified: ${r3Answers[idx]}`, 'success');
+
+                    if (Object.keys(r3Revealed).length === r3Answers.length && !r3BonusGiven) {
+                        players[r3CurrentPlayer].score += 50;
+                        r3BonusGiven = true;
+                        showMessage(`${round}-message`, `Board cleared. Bonus applied.`, 'success');
+                    }
+                } else {
+                    showMessage(`${round}-message`, 'Invalid entry or previously identified.', 'error');
                 }
-                processR3Guess(guess);
                 input.value = '';
+                updateR3Board();
+                updateScores('r3');
+
+                // Emit game state update for remote play
+                if (gameMode === 'remote' && socket) {
+                    socket.emit('update_game', {
+                        room_id: currentRoomCode,
+                        game_state: {
+                            action: 'r3_update',
+                            r3Revealed: r3Revealed,
+                            players: players.map(p => ({ name: p.name, score: p.score })),
+                            r3CurrentPlayer: r3CurrentPlayer,
+                            r3BonusGiven: r3BonusGiven
+                        }
+                    });
+                }
             }
         }
 
-        function isMyTurn_r1() { return r1CurrentPlayer === localPlayerId; }
-        function isMyTurn_r2() {
-            if (r2StealPhase) return r2StealQueue[r2StealIndex] === localPlayerId;
-            return r2CurrentPlayer === localPlayerId;
+        function showMessage(id, text, type) {
+            let style = type === 'success' ? 'text-teal-400 border-teal-900/60 bg-teal-900/20 shadow-sm' :
+                        type === 'error' ? 'text-rose-400 border-rose-900/60 bg-rose-900/20 shadow-sm' :
+                        'text-violet-400 border-violet-900/60 bg-violet-900/20 shadow-sm';
+            
+            const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'close-circle' : 'info-circle';
+            
+            document.getElementById(id).innerHTML = `<div class="px-3 py-1.5 rounded-md border text-xs font-medium ${style} flex items-center gap-2"><iconify-icon icon="solar:${icon}-linear"></iconify-icon>${text}</div>`;
+            
+            setTimeout(() => {
+                const el = document.getElementById(id);
+                if(el.innerText.includes(text)) el.innerHTML = '';
+            }, 2500);
         }
-        function isMyTurn_r3() { return r3CurrentPlayer === localPlayerId; }
+
+        function updateScores(prefix) {
+            const html = players.map(p => {
+                return `
+                <div class="flex-1 min-w-[120px] p-4 rounded-xl border border-violet-900/50 bg-zinc-900/80 backdrop-blur-sm shadow-sm flex flex-col items-center gap-1">
+                    <h3 class="text-xs font-medium text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">${p.color} ${p.name}</h3>
+                    <div class="text-xl font-medium tracking-tight text-violet-50 mt-0.5 tabular-nums">${p.score}</div>
+                </div>
+            `}).join('');
+            
+            const scoreContainer = document.getElementById(`${prefix}-scores`);
+            if(scoreContainer) scoreContainer.innerHTML = html;
+        }
+
+        function updateInputFieldStates() {
+            if (gameMode !== 'remote') return;
+            
+            // Round 1 input field
+            const r1Input = document.getElementById('r1-guess');
+            const r1Submit = document.querySelector('#round1 button[onclick*="submitGuess(\'r1\')"]');
+            if (r1Input && r1Submit) {
+                const isCurrentPlayer = r1CurrentPlayer === localPlayerId;
+                r1Input.disabled = !isCurrentPlayer;
+                r1Submit.disabled = !isCurrentPlayer;
+                r1Input.placeholder = isCurrentPlayer ? "Enter answer..." : "Waiting for other player's turn...";
+                r1Input.classList.toggle('opacity-50', !isCurrentPlayer);
+                r1Input.classList.toggle('cursor-not-allowed', !isCurrentPlayer);
+            }
+            
+            // Round 2 input field
+            const r2Input = document.getElementById('r2-guess');
+            const r2Submit = document.querySelector('#round2 button[onclick*="submitGuess(\'r2\')"]');
+            if (r2Input && r2Submit) {
+                const isCurrentPlayer = r2CurrentPlayer === localPlayerId;
+                const canSteal = r2StealPhase && r2StealQueue.includes(localPlayerId);
+                const enabled = isCurrentPlayer || canSteal;
+                r2Input.disabled = !enabled;
+                r2Submit.disabled = !enabled;
+                r2Input.placeholder = enabled ? "Enter answer..." : "Waiting for other player's turn...";
+                r2Input.classList.toggle('opacity-50', !enabled);
+                r2Input.classList.toggle('cursor-not-allowed', !enabled);
+            }
+            
+            // Round 3 input field
+            const r3Input = document.getElementById('r3-guess');
+            const r3Submit = document.querySelector('#round3 button[onclick*="submitGuess(\'r3\')"]');
+            if (r3Input && r3Submit) {
+                const isCurrentPlayer = r3CurrentPlayer === localPlayerId;
+                r3Input.disabled = !isCurrentPlayer;
+                r3Submit.disabled = !isCurrentPlayer;
+                r3Input.placeholder = isCurrentPlayer ? "Enter answer..." : "Waiting for other player's turn...";
+                r3Input.classList.toggle('opacity-50', !isCurrentPlayer);
+                r3Input.classList.toggle('cursor-not-allowed', !isCurrentPlayer);
+            }
+        }
+
+        function showSection(id) {
+            document.querySelectorAll('.game-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('gameModeSelection').classList.remove('active');
+            
+            document.getElementById(id).classList.add('active');
+            
+            const backBtn = document.getElementById('goBackButton');
+            if (backBtn) {
+                if (id === 'gameModeSelection') {
+                    backBtn.classList.add('hidden');
+                } else {
+                    backBtn.classList.remove('hidden');
+                }
+            }
+            
+            // Initialize player setup when switching to setup section
+            if (id === 'setup') {
+                initPlayerSetup();
+            }
+            
+            // Update input field states when switching sections
+            if (gameMode === 'remote') {
+                updateInputFieldStates();
+            }
+        }
 
         function nextRound(num) {
             if (num === 2) {
-                if (gameMode === 'remote' && !isHost) return; // host drives
                 showSection('round2');
                 initRound2();
             } else if (num === 3) {
-                if (gameMode === 'remote' && !isHost) return;
                 showSection('round3');
                 initRound3();
             }
         }
 
         function initRound2() {
-            if (r2RoundsDone >= 3) { nextRound(3); return; }
+            if (r2RoundsDone >= 3) {
+                nextRound(3);
+                return;
+            }
 
             if (!r2MainOrder.length) {
-                r2MainOrder = [...players].sort((a,b) => a.score - b.score).map(p => players.indexOf(p));
+                r2MainOrder = [...players].sort((a, b) => a.score - b.score).map(p => players.indexOf(p));
             }
 
             r2PrimaryPlayer = r2MainOrder[r2RoundsDone];
             r2CurrentPlayer = r2PrimaryPlayer;
-            r2StealPhase    = false;
-            r2StealQueue    = [];
-            r2StealIndex    = 0;
+            r2StealPhase = false;
+            r2StealQueue = [];
+            r2StealIndex = 0;
+
+            const player = players[r2CurrentPlayer];
+            document.getElementById('r2-title').innerHTML = `<span class="opacity-70">${player.color}</span> <span class="text-violet-50">${player.name}</span> <span class="text-zinc-500 font-normal ml-1">select category</span>`;
+
+            document.getElementById('r2-question-choose').classList.add('active');
+            document.getElementById('r2-game').classList.remove('active');
 
             const shuffled = [...r2QuestionPool].sort(() => Math.random() - 0.5);
             r2AvailableOptions = shuffled.slice(0, 3);
 
-            renderR2Choose();
-            updateScores('r2');
-
-            // ── Broadcast to non-host players ──
-            broadcastState('r2_init', {
-                r2RoundsDone,
-                r2PrimaryPlayer,
-                r2CurrentPlayer,
-                r2AvailableOptions
-            });
-        }
-
-        function renderR2Choose() {
-            const player = players[r2PrimaryPlayer];
-            document.getElementById('r2-title').innerHTML = `<span class="opacity-70">${player.color}</span> <span class="text-violet-50">${player.name}</span> <span class="text-zinc-500 font-normal ml-1">select category</span>`;
-            document.getElementById('r2-question-choose').classList.add('active');
-            document.getElementById('r2-game').classList.remove('active');
-
-            const canPick = (gameMode === 'local') || (gameMode === 'remote' && isHost);
             const optionsHtml = r2AvailableOptions.map((q, i) => `
-                <button class="p-4 rounded-xl border border-violet-900/50 bg-zinc-900 hover:bg-violet-900/20 hover:border-violet-700 transition-all flex flex-col gap-2 text-left shadow-sm ${canPick ? '' : 'opacity-50 cursor-not-allowed pointer-events-none'}" onclick="${canPick ? `chooseR2Question(${i})` : ''}">
+                <button class="p-4 rounded-xl border border-violet-900/50 bg-zinc-900 hover:bg-violet-900/20 hover:border-violet-700 transition-all flex flex-col gap-2 text-left shadow-sm" onclick="chooseR2Question(${i})">
                     <iconify-icon icon="solar:folder-with-files-linear" class="text-lg text-violet-400" stroke-width="1.5"></iconify-icon>
                     <span class="text-sm font-medium text-violet-50">${q.q}</span>
                 </button>
             `).join('');
             document.getElementById('r2-options').innerHTML = optionsHtml;
-        }
-
-        function buildR2Title() {
-            const player = players[r2PrimaryPlayer];
-            return `<span class="opacity-70">${player.color}</span> <span class="text-violet-50">${player.name}</span> <span class="text-zinc-500 font-normal ml-1">· answering</span>`;
+            updateScores('r2');
         }
 
         function chooseR2Question(idx) {
             r2CurrentQuestion = r2AvailableOptions[idx];
             removeQuestionFromPool(r2CurrentQuestion, r2QuestionPool);
             removeQuestionFromPool(r2CurrentQuestion, r3QuestionPool);
-            r2Revealed  = {};
-            r2TimeLeft  = 50;
-            r2StealPhase= false;
-            r2StealQueue= [];
-            r2StealIndex= 0;
+            r2Revealed = {};
+            r2TimeLeft = 50;
 
             document.getElementById('r2-question-choose').classList.remove('active');
             document.getElementById('r2-game').classList.add('active');
             document.getElementById('r2-question-display').textContent = r2CurrentQuestion.q;
-            document.getElementById('r2-title').innerHTML = buildR2Title();
-
+            
             startTimer();
             updateR2Board();
-            updateInputFieldStates();
-
-            broadcastState('r2_question_chosen', {
-                r2CurrentQuestion,
-                r2PrimaryPlayer,
-                r2CurrentPlayer: r2PrimaryPlayer
-            });
+            
+            // Update input field states for remote play
+            if (gameMode === 'remote') {
+                updateInputFieldStates();
+            }
         }
 
         function startTimer() {
-            clearInterval(r2Timer);
             const timerEl = document.getElementById('r2-timer');
             timerEl.textContent = r2TimeLeft;
-            timerEl.classList.remove('text-rose-400');
-            timerEl.classList.add('text-violet-50');
-
             r2Timer = setInterval(() => {
                 r2TimeLeft--;
                 timerEl.textContent = r2TimeLeft;
-                if (r2TimeLeft <= 10) timerEl.classList.replace('text-violet-50', 'text-rose-400');
+                if(r2TimeLeft <= 10) timerEl.classList.replace('text-violet-50', 'text-rose-400');
                 if (r2TimeLeft <= 0) {
-                    if (gameMode === 'local' || isHost) stopTimer();
-                    else clearInterval(r2Timer); // non-host just stops ticking; event will arrive
+                    stopTimer();
                 }
             }, 1000);
-        }
-        function hostOnlyStopTimer() {
-            if (gameMode === 'remote' && !isHost) return;
-            stopTimer();
         }
 
         function stopTimer() {
@@ -926,278 +1176,194 @@
 
             if (Object.keys(r2Revealed).length === r2CurrentQuestion.a.length) {
                 showMessage('r2-message', 'All answers found before time!', 'success');
-                broadcastState('r2_timer_stop', {
-                    r2StealPhase: false,
-                    r2StealQueue: [],
-                    r2StealIndex: 0,
-                    r2CurrentPlayer,
-                    r2Revealed
-                });
                 endR2Turn();
                 return;
             }
 
             r2StealPhase = true;
-            r2StealQueue = players.map((_,i) => i).filter(i => i !== r2PrimaryPlayer);
+            r2StealQueue = players.map((_, i) => i).filter(i => i !== r2PrimaryPlayer);
             r2StealIndex = 0;
-            r2CurrentPlayer = r2StealQueue[0];
+            r2CurrentPlayer = r2StealQueue[r2StealIndex];
+
             showMessage('r2-message', `Time's up! ${players[r2CurrentPlayer].name} gets steal chance`, 'info');
             updateR2Board();
-            updateInputFieldStates();
-            broadcastState('r2_timer_stop', {
-                r2StealPhase,
-                r2StealQueue,
-                r2StealIndex,
-                r2CurrentPlayer,
-                r2Revealed
-            });
-        }
-
-        function processR2Guess(guess) {
-            const answers          = r2CurrentQuestion.a;
-            const currentPlayerIdx = r2CurrentPlayer;
-
-            const idx = getAnswerIndexByGuess(guess, answers, r2Revealed);
-            if (idx !== -1) {
-                r2Revealed[idx] = players[currentPlayerIdx].cssClass;
-                players[currentPlayerIdx].score += 15;
-                showMessage('r2-message', `Identified: ${answers[idx]}`, 'success');
-            } else {
-                showMessage('r2-message', 'Invalid entry or previously identified.', 'error');
-            }
-
-            updateR2Board(); updateScores('r2');
-
-            if (!r2StealPhase) {
-                if (Object.keys(r2Revealed).length === answers.length) {
-                    clearInterval(r2Timer);
-                    showMessage('r2-message', 'All answers found!', 'success');
-                    broadcastState('r2_update', { r2Revealed, r2CurrentPlayer, r2StealPhase, r2StealQueue, r2StealIndex });
-                    endR2Turn();
-                } else {
-                    broadcastState('r2_update', { r2Revealed, r2CurrentPlayer, r2StealPhase, r2StealQueue, r2StealIndex });
-                }
-            } else {
-                broadcastState('r2_update', { r2Revealed, r2CurrentPlayer, r2StealPhase, r2StealQueue, r2StealIndex });
-                advanceR2StealOrEnd();
-            }
-        }
-        if (typeof socket !== 'undefined') {
         }
 
         function advanceR2StealOrEnd() {
             if (Object.keys(r2Revealed).length === r2CurrentQuestion.a.length) {
-                endR2Turn(); return;
+                endR2Turn();
+                return;
             }
+
             r2StealIndex++;
             if (r2StealIndex >= r2StealQueue.length) {
-                endR2Turn(); return;
+                endR2Turn();
+                return;
             }
+
             r2CurrentPlayer = r2StealQueue[r2StealIndex];
             showMessage('r2-message', `${players[r2CurrentPlayer].name} now gets the steal attempt`, 'info');
             updateR2Board();
-            updateInputFieldStates();
-            broadcastState('r2_update', { r2Revealed, r2CurrentPlayer, r2StealPhase, r2StealQueue, r2StealIndex });
+            
+            // Update input field states for steal phase
+            if (gameMode === 'remote') {
+                updateInputFieldStates();
+            }
         }
 
         function endR2Turn() {
-            clearInterval(r2Timer);
             r2StealPhase = false;
             for (let i = 0; i < r2CurrentQuestion.a.length; i++) {
                 if (!(i in r2Revealed)) r2Revealed[i] = 'grey';
             }
-            updateR2Board(); updateScores('r2');
+            updateR2Board();
+            updateScores('r2');
+
             r2RoundsDone++;
-
-            broadcastState('r2_end_turn', { r2Revealed, r2RoundsDone });
-
             if (r2RoundsDone < 3) {
-                setTimeout(() => initRound2(), 1500);
+                setTimeout(() => { initRound2(); }, 1500);
             } else {
-                setTimeout(() => { showSection('round3'); initRound3(); }, 1500);
+                setTimeout(() => { nextRound(3); }, 1500);
             }
         }
 
         function updateR2Board() {
-            if (!r2CurrentQuestion) return;
-            const el = document.getElementById('r2-answers');
-            if (el) el.innerHTML = buildAnswerCards(r2CurrentQuestion.a, r2Revealed);
+            const answers = r2CurrentQuestion.a;
+            const answersHtml = answers.map((ans, i) => {
+                const answerText = normalizeAnswerForDisplay(ans);
+                let display = '<iconify-icon icon="solar:minus-linear" class="text-xl opacity-20" stroke-width="1.5"></iconify-icon>';
+                let cssClass = getCardClasses('hidden');
+
+                if (i in r2Revealed) {
+                    cssClass = getCardClasses(r2Revealed[i]);
+                    display = `<span class="tracking-tight">${answerText}</span>`;
+                } else if (answerText === 'BLANK') {
+                    display = `<span class="tracking-tight text-zinc-400">BLANK</span>`;
+                }
+
+                return `<div class="p-3 rounded-lg border flex items-center justify-center text-center transition-all duration-500 min-h-[3.5rem] text-sm ${cssClass}">${display}</div>`;
+            }).join('');
+            document.getElementById('r2-answers').innerHTML = answersHtml;
         }
 
         function initRound3() {
-            if (!r3QuestionPool.length) r3QuestionPool = [...allQuestions];
-            const idx = Math.floor(Math.random() * r3QuestionPool.length);
-            const sel = r3QuestionPool.splice(idx, 1)[0];
-            r3Question      = sel.q;
-            r3Answers       = sel.a;
-            r3Revealed      = {};
-            r3CurrentPlayer = 0;
-            r3BonusGiven    = false;
-
+            if (r3QuestionPool.length === 0) r3QuestionPool = [...allQuestions];
+            const randomIdx = Math.floor(Math.random() * r3QuestionPool.length);
+            const selected = r3QuestionPool.splice(randomIdx, 1)[0];
+            r3Question = selected.q;
+            r3Answers = selected.a;
             document.getElementById('r3-question').textContent = r3Question;
-            updateR3Board(); updateScores('r3');
-            updateInputFieldStates();
-
-            broadcastState('r3_init', { r3Question, r3Answers });
-        }
-
-        function processR3Guess(guess) {
-            const idx = getAnswerIndexByGuess(guess, r3Answers, r3Revealed);
-            if (idx !== -1) {
-                r3Revealed[idx] = players[r3CurrentPlayer].cssClass;
-                players[r3CurrentPlayer].score += 10;
-                showMessage('r3-message', `Identified: ${r3Answers[idx]}`, 'success');
-
-                if (Object.keys(r3Revealed).length === r3Answers.length && !r3BonusGiven) {
-                    players[r3CurrentPlayer].score += 50;
-                    r3BonusGiven = true;
-                    showMessage('r3-message', 'Board cleared. Bonus applied.', 'success');
-                }
-            } else {
-                showMessage('r3-message', 'Invalid entry or previously identified.', 'error');
-                r3CurrentPlayer = (r3CurrentPlayer + 1) % 3;
-            }
-
-            updateR3Board(); updateScores('r3');
-            broadcastState('r3_update', { r3Revealed, r3CurrentPlayer, r3BonusGiven });
-
-            if (Object.keys(r3Revealed).length === r3Answers.length) {
-                broadcastState('show_final', {});
-                setTimeout(() => showFinalScores(), 1500);
+            r3Revealed = {};
+            r3CurrentPlayer = 0;
+            r3BonusGiven = false;
+            updateR3Board();
+            updateScores('r3');
+            
+            // Update input field states for remote play
+            if (gameMode === 'remote') {
+                updateInputFieldStates();
             }
         }
 
         function updateR3Board() {
-            const player    = players[r3CurrentPlayer];
+            const player = players[r3CurrentPlayer];
             const indicator = document.getElementById('r3-current-player');
-            if (!indicator) return;
             indicator.innerHTML = `<span class="opacity-70">${player.color}</span> <span class="text-violet-50">${player.name}</span> <span class="text-zinc-500 font-normal ml-1">· Active</span>`;
             indicator.className = `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border bg-zinc-900 shadow-sm text-xs font-medium transition-all duration-300 ${player.cssClass === 'red' ? 'border-red-800' : player.cssClass === 'blue' ? 'border-blue-800' : 'border-emerald-800'}`;
 
-            const el = document.getElementById('r3-answers');
-            if (el) el.innerHTML = buildAnswerCards(r3Answers, r3Revealed);
+            const answersHtml = r3Answers.map((ans, i) => {
+                const answerText = normalizeAnswerForDisplay(ans);
+                let display = '<iconify-icon icon="solar:minus-linear" class="text-xl opacity-20" stroke-width="1.5"></iconify-icon>';
+                let cssClass = getCardClasses('hidden');
+
+                if (i in r3Revealed) {
+                    cssClass = getCardClasses(r3Revealed[i]);
+                    display = `<span class="tracking-tight">${answerText}</span>`;
+                } else if (answerText === 'BLANK') {
+                    display = `<span class="tracking-tight text-zinc-400">BLANK</span>`;
+                }
+
+                return `<div class="p-3 rounded-lg border flex items-center justify-center text-center transition-all duration-500 min-h-[3.5rem] text-sm ${cssClass}">${display}</div>`;
+            }).join('');
+            document.getElementById('r3-answers').innerHTML = answersHtml;
+
+            if (Object.keys(r3Revealed).length === r3Answers.length) {
+                setTimeout(() => { showFinalScores(); }, 1500);
+            } else {
+                r3CurrentPlayer = (r3CurrentPlayer + 1) % 3;
+                // Update input field states when current player changes
+                if (gameMode === 'remote') {
+                    updateInputFieldStates();
+                }
+            }
         }
 
         function showFinalScores() {
             showSection('final');
-            const sorted = [...players].sort((a,b) => b.score - a.score);
-            const winner = sorted[0];
+            
+            const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+            const winner = sortedPlayers[0];
+            
             document.getElementById('winner-display').innerHTML = `
                 <div class="inline-flex flex-col items-center justify-center p-8 rounded-2xl border border-violet-900/50 bg-zinc-900/80 backdrop-blur-sm shadow-sm relative">
                     <iconify-icon icon="solar:cup-star-linear" class="text-3xl text-amber-400 mb-4" stroke-width="1.5"></iconify-icon>
-                    <h3 class="text-lg font-medium tracking-tight text-violet-50 flex items-center gap-2">${winner.color} ${winner.name}</h3>
+                    <h3 class="text-lg font-medium tracking-tight text-violet-50 flex items-center gap-2">
+                        ${winner.color} ${winner.name}
+                    </h3>
                     <div class="text-4xl font-medium tracking-tighter text-violet-50 mt-2 tabular-nums">${winner.score} <span class="text-sm text-zinc-500 font-normal">pts</span></div>
-                </div>`;
-            document.getElementById('final-scores').innerHTML = sorted.slice(1).map((p, i) => `
+                </div>
+            `;
+
+            const finalScoresHtml = sortedPlayers.slice(1).map((p, index) => `
                 <div class="flex items-center justify-between p-3 rounded-lg border border-violet-900/50 bg-zinc-900 shadow-sm w-full">
                     <div class="flex items-center gap-3">
-                        <span class="text-zinc-500 text-xs font-medium w-4">0${i+2}</span>
+                        <span class="text-zinc-500 text-xs font-medium w-4">0${index + 2}</span>
                         <span class="text-sm font-medium text-zinc-300">${p.color} ${p.name}</span>
                     </div>
                     <span class="text-sm font-medium text-violet-50 tabular-nums">${p.score} pts</span>
-                </div>`).join('');
-        }
-
-        function showMessage(id, text, type) {
-            const style = type === 'success' ? 'text-teal-400 border-teal-900/60 bg-teal-900/20 shadow-sm'
-                        : type === 'error'   ? 'text-rose-400 border-rose-900/60 bg-rose-900/20 shadow-sm'
-                        : 'text-violet-400 border-violet-900/60 bg-violet-900/20 shadow-sm';
-            const icon  = type === 'success' ? 'check-circle' : type === 'error' ? 'close-circle' : 'info-circle';
-            const el    = document.getElementById(id);
-            if (!el) return;
-            el.innerHTML = `<div class="px-3 py-1.5 rounded-md border text-xs font-medium ${style} flex items-center gap-2"><iconify-icon icon="solar:${icon}-linear"></iconify-icon>${text}</div>`;
-            setTimeout(() => { if (el.innerText.includes(text)) el.innerHTML = ''; }, 2500);
-        }
-
-        function updateScores(prefix) {
-            const el = document.getElementById(`${prefix}-scores`);
-            if (!el) return;
-            el.innerHTML = players.map(p => `
-                <div class="flex-1 min-w-[120px] p-4 rounded-xl border border-violet-900/50 bg-zinc-900/80 backdrop-blur-sm shadow-sm flex flex-col items-center gap-1">
-                    <h3 class="text-xs font-medium text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">${p.color} ${p.name}</h3>
-                    <div class="text-xl font-medium tracking-tight text-violet-50 mt-0.5 tabular-nums">${p.score}</div>
-                </div>`).join('');
-        }
-
-        function updateInputFieldStates() {
-            if (gameMode !== 'remote') return;
-            setInputEnabled('r1-guess',  '#round1 button[onclick*="r1"]',  r1CurrentPlayer === localPlayerId, "Waiting for other player's turn...");
-            const r2Enabled = r2StealPhase ? (r2StealQueue[r2StealIndex] === localPlayerId) : (r2CurrentPlayer === localPlayerId);
-            setInputEnabled('r2-guess',  '#round2 button[onclick*="r2"]',  r2Enabled, "Waiting for other player's turn...");
-            setInputEnabled('r3-guess',  '#round3 button[onclick*="r3"]',  r3CurrentPlayer === localPlayerId, "Waiting for other player's turn...");
-
-            const skipBtn = document.querySelector('#round2 button[onclick="hostOnlyStopTimer()"]');
-            if (skipBtn) skipBtn.style.display = isHost ? '' : 'none';
-        }
-
-        function setInputEnabled(inputId, btnSelector, enabled, waitMsg) {
-            const inp = document.getElementById(inputId);
-            const btn = document.querySelector(btnSelector);
-            if (!inp) return;
-            inp.disabled = !enabled;
-            if (btn) btn.disabled = !enabled;
-            inp.placeholder = enabled ? 'Enter answer...' : waitMsg;
-            inp.classList.toggle('opacity-50', !enabled);
-            inp.classList.toggle('cursor-not-allowed', !enabled);
-        }
-
-        function showSection(id) {
-            document.querySelectorAll('.game-section').forEach(s => s.classList.remove('active'));
-            document.getElementById('gameModeSelection').classList.remove('active');
-            const target = document.getElementById(id);
-            if (target) target.classList.add('active');
-
-            const backBtn = document.getElementById('goBackButton');
-            if (backBtn) backBtn.classList.toggle('hidden', id === 'gameModeSelection');
-            if (id === 'setup') initPlayerSetup();
-            if (gameMode === 'remote') updateInputFieldStates();
-        }
-
-        function wirePlayerActionHandler() {
-            if (!socket) return;
-            socket.on('action_received', (action) => {
-                if (!isHost) return; // safety
-                if (action.type === 'r2_guess') {
-                    const prevPlayer = r2CurrentPlayer;
-                    r2CurrentPlayer = action.playerId;
-                    processR2Guess(action.guess);
-                }
-                if (action.type === 'r3_guess') {
-                    const prevPlayer = r3CurrentPlayer;
-                    r3CurrentPlayer = action.playerId;
-                    processR3Guess(action.guess);
-                }
-            });
-        }
-
-        const _origInitSocket = initSocket;
-        function initSocket() {
-            _origInitSocket();
-            wirePlayerActionHandler();
+                </div>
+            `).join('');
+            
+            document.getElementById('final-scores').innerHTML = finalScoresHtml;
         }
 
         function restartGame() {
             clearInterval(r2Timer);
             players.forEach(p => p.score = 0);
-            r1Revealed = {}; r1PlayerTurns = [0,0,0];
-            r2Revealed = {}; r3Revealed = {}; r3BonusGiven = false;
+
+            r1Revealed = {};
+            r1PlayerTurns = [0, 0, 0];
+            r2Revealed = {};
+            r3Revealed = {};
+            r3BonusGiven = false;
+
             r1QuestionPool = [...allQuestions];
             r2QuestionPool = [...allQuestions];
             r3QuestionPool = [...allQuestions];
-            r2MainOrder = []; r2RoundsDone = 0; r2StealPhase = false;
-            r2StealQueue = []; r2StealIndex = 0; r2CurrentQuestion = null;
-            r3Question = null; r3Answers = null;
+
+            r2MainOrder = [];
+            r2RoundsDone = 0;
+            r2StealPhase = false;
+            r2StealQueue = [];
+            r2StealIndex = 0;
+
+            r2CurrentQuestion = null;
+            r3Question = null;
+            r3Answers = null;
+
             document.querySelectorAll('input').forEach(i => i.value = '');
+            document.getElementById('gameModeSelection').classList.add('active');
             document.getElementById('roomCodeInput').classList.remove('show');
             document.getElementById('createRoomOptions').classList.remove('show');
             document.getElementById('createRoomSection').classList.remove('show');
+
             showSection('gameModeSelection');
-            document.getElementById('gameModeSelection').classList.add('active');
         }
 
         function handleEnter(event, round) {
             if (event.key === 'Enter') submitGuess(round);
         }
+
     </script>
 </body>
 </html>
