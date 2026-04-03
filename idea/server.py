@@ -33,7 +33,8 @@ def api_create_room():
             'r2_revealed': {},
             'r3_questions': random.sample(R3_QUESTIONS, len(R3_QUESTIONS)),
             'r3_revealed': {}
-        }
+        },
+        'r3_claimed': {}
     }
     return jsonify({'room_id': room_id})
 
@@ -77,7 +78,55 @@ def handle_update_game(data):
     game_state = data['game_state']
     if room_id in rooms:
         rooms[room_id]['game_state'] = game_state
+        # Reset r3_claimed when round 3 is initialized
+        if game_state.get('action') == 'r3_init':
+            rooms[room_id]['r3_claimed'] = {}
         emit('game_updated', game_state, room=room_id, include_self=False)
+
+@socketio.on('r3_claim')
+def handle_r3_claim(data):
+    """
+    Atomically claim an answer in Round 3.
+    Multiple players may submit at the same time; only the first claimant wins.
+    """
+    room_id = data['room_id']
+    answer_idx = str(data['answer_idx'])
+    player_id = data['player_id']
+    player_css_class = data['player_css_class']
+    player_score_delta = data.get('score_delta', 10)
+    bonus = data.get('bonus', False)
+
+    if room_id not in rooms:
+        return
+
+    claimed = rooms[room_id].setdefault('r3_claimed', {})
+
+    if answer_idx in claimed:
+        # Already claimed — reject silently (client will see no confirmation)
+        emit('r3_claim_rejected', {
+            'answer_idx': int(answer_idx),
+            'player_id': player_id
+        })
+        return
+
+    # Claim is valid — lock it server-side
+    claimed[answer_idx] = {
+        'player_id': player_id,
+        'css_class': player_css_class
+    }
+
+    # Build the full revealed map so all clients can sync their board authoritatively.
+    # Keys are ints so JS can use them directly as array indices.
+    full_revealed = {int(k): v['css_class'] for k, v in claimed.items()}
+
+    # Broadcast the successful claim to ALL players (including sender)
+    emit('r3_claim_accepted', {
+        'answer_idx': int(answer_idx),
+        'player_id': player_id,
+        'player_css_class': player_css_class,
+        'score_delta': player_score_delta,
+        'r3_revealed': full_revealed
+    }, room=room_id)
 
 @socketio.on('player_action')
 def handle_player_action(data):
