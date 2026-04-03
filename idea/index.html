@@ -234,9 +234,11 @@
                     </span>
                     <h2 class="text-xl sm:text-2xl font-medium tracking-tight text-violet-50 max-w-2xl text-balance leading-snug" id="r3-question"></h2>
                 </div>
-                
-                <div class="flex justify-center mb-8 h-10">
-                    <div id="r3-current-player" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all duration-300"></div>
+                <div class="flex justify-center mb-8">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-amber-800 bg-amber-900/20 text-xs font-medium text-amber-400">
+                        <div class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></div>
+                        All players — answer simultaneously! First to claim wins.
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 max-w-4xl mx-auto" id="r3-answers"></div>
@@ -604,20 +606,50 @@
                         document.getElementById('r3-question').textContent = r3Question;
                         renderR3Board();
                         updateScores('r3');
-                        updateInputFieldStates();
-
-                    } else if (gameState.action === 'r3_update') {
-                        // Apply R3 game state updates
+                        updateInputFieldStates();                    } else if (gameState.action === 'r3_update') {
+                        // Legacy fallback for R3 sync (parallel mode)
                         r3Revealed = gameState.r3Revealed;
                         gameState.players.forEach((p, i) => { if (players[i]) { players[i].name = p.name; players[i].score = p.score; } });
-                        r3CurrentPlayer = gameState.r3CurrentPlayer;
                         r3BonusGiven = gameState.r3BonusGiven;
                         renderR3Board();
                         updateScores('r3');
-                        updateInputFieldStates();
                         if (Object.keys(r3Revealed).length === r3Answers.length) {
                             setTimeout(() => { showFinalScores(); }, 1500);
                         }
+                    }
+                });
+
+                // R3 Parallel claim confirmed by server — apply to all players
+                socket.on('r3_claim_accepted', (data) => {
+                    const { answer_idx, player_id, player_css_class, score_delta, bonus } = data;
+                    r3Revealed[answer_idx] = player_css_class;
+                    if (player_id !== localPlayerId) {
+                        players[player_id].score += score_delta;
+                        if (bonus && !r3BonusGiven) {
+                            players[player_id].score += 50;
+                            r3BonusGiven = true;
+                            showMessage('r3-message', `${players[player_id].name} cleared the board! +50 bonus!`, 'success');
+                        } else {
+                            showMessage('r3-message', `${players[player_id].name} claimed: ${r3Answers[answer_idx]}`, 'success');
+                        }
+                    }
+                    renderR3Board();
+                    updateScores('r3');
+                    if (Object.keys(r3Revealed).length === r3Answers.length) {
+                        setTimeout(() => { showFinalScores(); }, 1500);
+                    }
+                });
+
+                // R3 Parallel claim rejected — someone else claimed first
+                socket.on('r3_claim_rejected', (data) => {
+                    const { answer_idx, player_id } = data;
+                    if (player_id === localPlayerId) {
+                        delete r3Revealed[answer_idx];
+                        players[localPlayerId].score -= 10;
+                        if (r3BonusGiven) { players[localPlayerId].score -= 50; r3BonusGiven = false; }
+                        showMessage('r3-message', 'Too slow! Someone else claimed that first.', 'error');
+                        renderR3Board();
+                        updateScores('r3');
                     }
                 });
             }
@@ -933,10 +965,6 @@
                     showMessage(`${round}-message`, 'It\'s not your turn!', 'error');
                     return;
                 }
-                if (round === 'r3' && r3CurrentPlayer !== localPlayerId) {
-                    showMessage(`${round}-message`, 'It\'s not your turn!', 'error');
-                    return;
-                }
             }
 
             if (round === 'r1') {
@@ -1051,38 +1079,53 @@
                 }
             }
             else if (round === 'r3') {
+                // PARALLEL MODE: any player can claim any unclaimed answer simultaneously
                 const idx = getAnswerIndexByGuess(guess, r3Answers, r3Revealed);
                 if (idx !== -1) {
-                    r3Revealed[idx] = players[r3CurrentPlayer].cssClass;
-                    players[r3CurrentPlayer].score += 10;
-                    showMessage(`${round}-message`, `Identified: ${r3Answers[idx]}`, 'success');
-
-                    if (Object.keys(r3Revealed).length === r3Answers.length && !r3BonusGiven) {
-                        players[r3CurrentPlayer].score += 50;
-                        r3BonusGiven = true;
-                        showMessage(`${round}-message`, `Board cleared. Bonus applied.`, 'success');
+                    const claimingPlayer = (gameMode === 'remote' && localPlayerId !== null) ? localPlayerId : r3CurrentPlayer;
+                    if (gameMode === 'remote' && socket) {
+                        // Optimistic local update
+                        r3Revealed[idx] = players[claimingPlayer].cssClass;
+                        players[claimingPlayer].score += 10;
+                        const allFound = Object.keys(r3Revealed).length === r3Answers.length;
+                        if (allFound && !r3BonusGiven) {
+                            players[claimingPlayer].score += 50;
+                            r3BonusGiven = true;
+                        }
+                        renderR3Board();
+                        updateScores('r3');
+                        showMessage(`${round}-message`, `Claimed: ${r3Answers[idx]}`, 'success');
+                        // Send claim to server for atomic validation
+                        socket.emit('r3_claim', {
+                            room_id: currentRoomCode,
+                            answer_idx: idx,
+                            player_id: localPlayerId,
+                            player_css_class: players[localPlayerId].cssClass,
+                            score_delta: 10,
+                            bonus: allFound
+                        });
+                    } else {
+                        // Local mode: update immediately, cycle current player for UI fairness
+                        r3Revealed[idx] = players[claimingPlayer].cssClass;
+                        players[claimingPlayer].score += 10;
+                        showMessage(`${round}-message`, `${players[claimingPlayer].name} claimed: ${r3Answers[idx]}`, 'success');
+                        const allFound = Object.keys(r3Revealed).length === r3Answers.length;
+                        if (allFound && !r3BonusGiven) {
+                            players[claimingPlayer].score += 50;
+                            r3BonusGiven = true;
+                            showMessage(`${round}-message`, `${players[claimingPlayer].name} cleared the board! +50 bonus!`, 'success');
+                        }
+                        r3CurrentPlayer = (r3CurrentPlayer + 1) % 3;
+                        renderR3Board();
+                        updateScores('r3');
+                        if (allFound) {
+                            setTimeout(() => { showFinalScores(); }, 1500);
+                        }
                     }
                 } else {
-                    showMessage(`${round}-message`, 'Invalid entry or previously identified.', 'error');
+                    showMessage(`${round}-message`, 'Invalid entry or already claimed.', 'error');
                 }
                 input.value = '';
-                // updateR3Board advances r3CurrentPlayer, so capture new player AFTER the call
-                updateR3Board();
-                updateScores('r3');
-
-                // Emit game state update for remote play (r3CurrentPlayer is now the NEXT player after updateR3Board)
-                if (gameMode === 'remote' && socket) {
-                    socket.emit('update_game', {
-                        room_id: currentRoomCode,
-                        game_state: {
-                            action: 'r3_update',
-                            r3Revealed: r3Revealed,
-                            players: players.map(p => ({ name: p.name, score: p.score })),
-                            r3CurrentPlayer: r3CurrentPlayer,
-                            r3BonusGiven: r3BonusGiven
-                        }
-                    });
-                }
             }
         }
 
@@ -1143,16 +1186,14 @@
                 r2Input.classList.toggle('cursor-not-allowed', !enabled);
             }
             
-            // Round 3 input field
+                        // Round 3 input field — always enabled (parallel answering mode)
             const r3Input = document.getElementById('r3-guess');
             const r3Submit = document.querySelector('#round3 button[onclick*="submitGuess(\'r3\')"]');
             if (r3Input && r3Submit) {
-                const isCurrentPlayer = r3CurrentPlayer === localPlayerId;
-                r3Input.disabled = !isCurrentPlayer;
-                r3Submit.disabled = !isCurrentPlayer;
-                r3Input.placeholder = isCurrentPlayer ? "Enter answer..." : "Waiting for other player's turn...";
-                r3Input.classList.toggle('opacity-50', !isCurrentPlayer);
-                r3Input.classList.toggle('cursor-not-allowed', !isCurrentPlayer);
+                r3Input.disabled = false;
+                r3Submit.disabled = false;
+                r3Input.placeholder = 'Enter answer...';
+                r3Input.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
 
@@ -1448,12 +1489,8 @@
             }
         }
 
-        // Pure render — does NOT advance the player
+                // Pure render — parallel mode, no single active player indicator
         function renderR3Board() {
-            const player = players[r3CurrentPlayer];
-            const indicator = document.getElementById('r3-current-player');
-            indicator.innerHTML = `<span class="opacity-70">${player.color}</span> <span class="text-violet-50">${player.name}</span> <span class="text-zinc-500 font-normal ml-1">· Active</span>`;
-            indicator.className = `inline-flex items-center gap-2 px-3 py-1.5 rounded-md border bg-zinc-900 shadow-sm text-xs font-medium transition-all duration-300 ${player.cssClass === 'red' ? 'border-red-800' : player.cssClass === 'blue' ? 'border-blue-800' : 'border-emerald-800'}`;
 
             const answersHtml = r3Answers.map((ans, i) => {
                 const answerText = normalizeAnswerForDisplay(ans);
@@ -1472,17 +1509,11 @@
             document.getElementById('r3-answers').innerHTML = answersHtml;
         }
 
-        // Render + advance player + handle board-clear (host only)
+                // Render R3 board — parallel mode, no player cycling
         function updateR3Board() {
+            renderR3Board();
             if (Object.keys(r3Revealed).length === r3Answers.length) {
-                renderR3Board();
                 setTimeout(() => { showFinalScores(); }, 1500);
-            } else {
-                r3CurrentPlayer = (r3CurrentPlayer + 1) % 3;
-                renderR3Board();
-                if (gameMode === 'remote') {
-                    updateInputFieldStates();
-                }
             }
         }
 
