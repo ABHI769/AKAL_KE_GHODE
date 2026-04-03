@@ -48,7 +48,9 @@ def api_join_room(room_id):
     
     data = request.json
     player_name = data.get('player_name', f'Player {len(rooms[room_id]["players"]) + 1}')
-    player_color = data.get('player_color', '🔴')
+    default_colors = ['🔴', '🔵', '🟢']
+    default_color = default_colors[len(rooms[room_id]['players'])] if len(rooms[room_id]['players']) < len(default_colors) else '🔴'
+    player_color = data.get('player_color', default_color)
     
     if len(rooms[room_id]['players']) >= 3:
         return jsonify({'error': 'Room is full'}), 400
