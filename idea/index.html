@@ -1080,6 +1080,19 @@
             }
             else if (round === 'r3') {
                 // PARALLEL MODE: any player can claim any unclaimed answer simultaneously
+                // Pre-check: if guess matches a CLAIMED answer, reject with who claimed it
+                const alreadyClaimedIdx = r3Answers.findIndex((ans, i) => {
+                    if (!(i in r3Revealed)) return false;
+                    const normalized = (ans || '').trim().toLowerCase();
+                    const g = guess.trim().toLowerCase();
+                    return normalized === g || (normalized.length >= 3 && (normalized.includes(g) || g.includes(normalized)));
+                });
+                if (alreadyClaimedIdx !== -1) {
+                    const whoOwns = players.find(p => p.cssClass === r3Revealed[alreadyClaimedIdx]);
+                    showMessage(`${round}-message`, `Already claimed by ${whoOwns ? whoOwns.color + ' ' + whoOwns.name : 'another player'}!`, 'error');
+                    input.value = '';
+                    return;
+                }
                 const idx = getAnswerIndexByGuess(guess, r3Answers, r3Revealed);
                 if (idx !== -1) {
                     const claimingPlayer = (gameMode === 'remote' && localPlayerId !== null) ? localPlayerId : r3CurrentPlayer;
@@ -1489,9 +1502,8 @@
             }
         }
 
-                // Pure render — parallel mode, no single active player indicator
+                // Pure render — parallel mode, shows who claimed each answer
         function renderR3Board() {
-
             const answersHtml = r3Answers.map((ans, i) => {
                 const answerText = normalizeAnswerForDisplay(ans);
                 let display = '<iconify-icon icon="solar:minus-linear" class="text-xl opacity-20" stroke-width="1.5"></iconify-icon>';
@@ -1499,12 +1511,17 @@
 
                 if (i in r3Revealed) {
                     cssClass = getCardClasses(r3Revealed[i]);
-                    display = `<span class="tracking-tight">${answerText}</span>`;
+                    // Find the player who claimed this answer
+                    const claimer = players.find(p => p.cssClass === r3Revealed[i]);
+                    const claimerTag = claimer
+                        ? `<span class="block text-[10px] opacity-70 mt-0.5">${claimer.color} ${claimer.name}</span>`
+                        : '';
+                    display = `<span class="tracking-tight font-medium">${answerText}</span>${claimerTag}`;
                 } else if (answerText === 'BLANK') {
                     display = `<span class="tracking-tight text-zinc-400">BLANK</span>`;
                 }
 
-                return `<div class="p-3 rounded-lg border flex items-center justify-center text-center transition-all duration-500 min-h-[3.5rem] text-sm ${cssClass}">${display}</div>`;
+                return `<div class="p-3 rounded-lg border flex flex-col items-center justify-center text-center transition-all duration-500 min-h-[3.5rem] text-sm ${cssClass}">${display}</div>`;
             }).join('');
             document.getElementById('r3-answers').innerHTML = answersHtml;
         }
