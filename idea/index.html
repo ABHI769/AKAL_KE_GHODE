@@ -69,7 +69,7 @@
             <div class="flex-1 flex justify-end">
                 <div id="headerRoomCodeDisplay" class="hidden items-center gap-2 px-3 py-1.5 bg-zinc-900/80 backdrop-blur-sm border border-violet-900/50 shadow-sm rounded-md">
                     <div class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></div>
-                    <span id="headerRoomCode" class="text-xs font-medium text-zinc-300 tracking-widest uppercase"></span>
+                    <span id="headerRoomCode" class="text-xs font-medium text-zinc-300 tracking-widest"></span>
                 </div>
             </div>
         </header>
@@ -108,7 +108,7 @@
                         <p class="text-sm font-medium text-violet-50 mb-4 tracking-tight">Join an existing room</p>
                         <div class="flex flex-col sm:flex-row gap-3">
                             <input type="text" id="playerName" placeholder="Your Name" class="flex-1 px-3.5 py-2.5 bg-black border border-violet-900/50 shadow-sm rounded-lg focus:outline-none focus:border-violet-600 focus:ring-2 focus:ring-violet-600/20 transition-all text-sm text-violet-50 placeholder-zinc-600">
-                            <input type="text" id="roomCode" placeholder="Room Code" class="flex-1 px-3.5 py-2.5 bg-black border border-violet-900/50 shadow-sm rounded-lg focus:outline-none focus:border-violet-600 focus:ring-2 focus:ring-violet-600/20 transition-all text-sm text-violet-50 placeholder-zinc-600 uppercase tracking-widest sm:max-w-[140px] text-center">
+                            <input type="text" id="roomCode" placeholder="Room Code" class="flex-1 px-3.5 py-2.5 bg-black border border-violet-900/50 shadow-sm rounded-lg focus:outline-none focus:border-violet-600 focus:ring-2 focus:ring-violet-600/20 transition-all text-sm text-violet-50 placeholder-zinc-600 tracking-widest sm:max-w-[140px] text-center">
                             <button class="px-5 py-2.5 bg-violet-700 text-white shadow-sm text-sm font-medium rounded-lg hover:bg-violet-600 transition-colors" onclick="joinRemoteGame()">Join</button>
                         </div>
                     </div>
@@ -451,7 +451,7 @@
 
         async function joinRemoteGame() {
             const playerName = document.getElementById('playerName').value.trim();
-            const roomCode = document.getElementById('roomCode').value.trim().toUpperCase();
+            const roomCode = document.getElementById('roomCode').value.trim();
             if (!playerName || !roomCode) return;
             
             const btn = document.querySelector('#roomCodeInput button');
