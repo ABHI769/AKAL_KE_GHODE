@@ -1,8 +1,3 @@
-"""
-Kaustubh Game Server - Remote Multiplayer Support
-Run this server to enable players to join from their own devices
-"""
-
 from flask import Flask, send_file, jsonify, request
 from flask_socketio import SocketIO, emit, join_room
 import json
@@ -14,7 +9,6 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'kaustubh-game-secret'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# Game rooms storage
 rooms = {}
 
 def create_room():
@@ -24,8 +18,6 @@ def create_room():
 @app.route('/')
 def index():
     return send_file('index.html')
-
-# API Routes
 @app.route('/api/create-room', methods=['POST'])
 def api_create_room():
     """Create a new game room"""
@@ -73,8 +65,6 @@ def api_get_room(room_id):
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
     return jsonify(rooms[room_id])
-
-# WebSocket Events
 @socketio.on('join_room')
 def handle_join_room(data):
     room_id = data['room_id']
